@@ -5,6 +5,8 @@ import WeaponView from "../server_comentarios/view/WeaponView";
 import cors from 'cors';
 import CommentView from "../server_comentarios/view/CommentView";
 import AuthView from "../server_comentarios/view/AuthView";
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpecs from '../swagger/swaggerConfig';
 
 export default class Server {
     private readonly app: Application;
@@ -35,11 +37,24 @@ export default class Server {
     }
 
     readonly routes = (): void => {
+        // Documentación Swagger
+        this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
+            explorer: true,
+            customCss: '.swagger-ui .topbar { display: none }',
+            customSiteTitle: "API Comentarios - Documentación"
+        }));
+        
+        // Ruta para obtener la especificación JSON de Swagger
+        this.app.get('/api-docs.json', (_req, res) => {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(swaggerSpecs);
+        });
+        
         this.app.use('/api', this.armorView.router);
         this.app.use('/api', this.itemView.router);
-    this.app.use('/api', this.weaponView.router);
-    this.app.use('/api', this.commentView.router);
-    this.app.use('/api', this.authView.router);
+        this.app.use('/api', this.weaponView.router);
+        this.app.use('/api', this.commentView.router);
+        this.app.use('/api', this.authView.router);
     };
 
     readonly start = (): void => {

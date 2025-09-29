@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const swaggerConfig_1 = __importDefault(require("../swagger/swaggerConfig"));
 class Server {
     armorView;
     itemView;
@@ -35,6 +37,17 @@ class Server {
         this.app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
     };
     routes = () => {
+        // Documentación Swagger
+        this.app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerConfig_1.default, {
+            explorer: true,
+            customCss: '.swagger-ui .topbar { display: none }',
+            customSiteTitle: "API Comentarios - Documentación"
+        }));
+        // Ruta para obtener la especificación JSON de Swagger
+        this.app.get('/api-docs.json', (_req, res) => {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(swaggerConfig_1.default);
+        });
         this.app.use('/api', this.armorView.router);
         this.app.use('/api', this.itemView.router);
         this.app.use('/api', this.weaponView.router);
