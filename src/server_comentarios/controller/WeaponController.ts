@@ -24,7 +24,7 @@ export default class WeaponController {
 
       const weapons = await this.weaponModel.getAll(filters);
       res.status(200).json(weapons);
-    } catch (e:any) {
+    } catch (e: any) {
       res.status(500).json({ message: 'Error al obtener weapons', error: e.message });
     }
   };
@@ -43,13 +43,19 @@ export default class WeaponController {
   readonly get = async (req: Request, res: Response): Promise<void> => {
     try {
       const id = parseInt((req.params as any)['id'], 10);
-      if (isNaN(id)) { res.status(400).json({ message: 'ID inválido' }); return; }
+      if (isNaN(id)) {
+        res.status(400).json({ message: 'ID inválido' });
+        return;
+      }
 
       const weapon = await this.weaponModel.getById(id);
-      if (!weapon) { res.status(404).json({ message: 'Weapon no encontrada' }); return; }
+      if (!weapon) {
+        res.status(404).json({ message: 'Weapon no encontrada' });
+        return;
+      }
 
       res.status(200).json(weapon);
-    } catch (e:any) {
+    } catch (e: any) {
       res.status(500).json({ message: 'Error al obtener weapon', error: e.message });
     }
   };

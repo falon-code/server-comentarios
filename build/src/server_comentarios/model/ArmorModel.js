@@ -6,19 +6,19 @@ class ArmorModel {
     collectionName;
     resolved = false;
     constructor() {
-        this.dbName = process.env["INVENTORY_DB_NAME"] || "Inventario"; // valor inicial (puede cambiar tras autodetección)
-        this.collectionName = process.env["INVENTORY_ARMORS_COLLECTION"] || "armors";
+        this.dbName = process.env['INVENTORY_DB_NAME'] || 'Inventario'; // valor inicial (puede cambiar tras autodetección)
+        this.collectionName = process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors';
     }
     /*
-    * Este método se ejecuta una única vez para asegurar que la base de datos utilizada por el modelo de armaduras esté correctamente resuelta.
-   * - Si el usuario ya definió la variable de entorno INVENTORY_DB_NAME, no realiza ninguna acción adicional.
-   * - Si no está definida, lista todas las bases de datos disponibles y selecciona la primera de una lista de candidatos que contenga la colección de armaduras.
-   * - Guarda el nombre de la base de datos seleccionada en `this.dbName` y marca la resolución como completada (`resolved = true`).
-    */
+     * Este método se ejecuta una única vez para asegurar que la base de datos utilizada por el modelo de armaduras esté correctamente resuelta.
+     * - Si el usuario ya definió la variable de entorno INVENTORY_DB_NAME, no realiza ninguna acción adicional.
+     * - Si no está definida, lista todas las bases de datos disponibles y selecciona la primera de una lista de candidatos que contenga la colección de armaduras.
+     * - Guarda el nombre de la base de datos seleccionada en `this.dbName` y marca la resolución como completada (`resolved = true`).
+     */
     ensureDbResolved = async () => {
         if (this.resolved)
             return;
-        if (process.env["INVENTORY_DB_NAME"]) {
+        if (process.env['INVENTORY_DB_NAME']) {
             this.resolved = true;
             return;
         }
@@ -27,7 +27,7 @@ class ArmorModel {
             const admin = client.db().admin();
             const { databases } = await admin.listDatabases();
             const names = databases.map(d => d.name);
-            const candidates = ["comentarios", "Inventario", "NexusBattlesIV", "test", "local"];
+            const candidates = ['comentarios', 'Inventario', 'NexusBattlesIV', 'test', 'local'];
             for (const c of candidates) {
                 if (!names.includes(c))
                     continue;
@@ -55,8 +55,8 @@ class ArmorModel {
             query.heroType = filters.heroType;
         if (filters && typeof filters.armorType === 'string')
             query.armorType = filters.armorType;
-        if (filters && typeof filters.status !== 'undefined')
-            query.status = (filters.status === 'true' || filters.status === true);
+        if (typeof filters?.status !== 'undefined')
+            query.status = filters.status === 'true' || filters.status === true;
         const docs = await col.find(query).sort({ id: 1 }).toArray();
         console.log(`[ArmorModel] getAll query=${JSON.stringify(query)} returned=${docs.length}`);
         return docs;

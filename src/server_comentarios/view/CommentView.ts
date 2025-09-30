@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import CommentController from "../controller/CommentController";
-import { requireAuth } from "../middleware/auth";
+import CommentController from '../controller/CommentController';
+import { requireAuth } from '../middleware/auth';
 
 export default class CommentView {
   public readonly router: Router;
@@ -11,7 +11,6 @@ export default class CommentView {
   }
 
   private routes() {
-
     /**
      * @swagger
      * /{tipo}/{idOrOid}/comments:
@@ -63,7 +62,7 @@ export default class CommentView {
      */
     // Alias más corto: /:tipo/:idOrOid/comments (solo comentarios)
     this.router.get('/:tipo/:idOrOid/comments', this.controller.listByPath);
-    
+
     /**
      * @swagger
      * /comments/{tipo}/{idOrOid}:
@@ -128,7 +127,7 @@ export default class CommentView {
      */
     // Summary: producto + comentarios + stats
     this.router.get('/comments/:tipo/:idOrOid', this.controller.summaryByPath);
-    
+
     /**
      * @swagger
      * /{tipo}/{idOrOid}/comments:
@@ -199,7 +198,7 @@ export default class CommentView {
      */
     // Crear comentario por ruta del recurso (auth)
     this.router.post('/:tipo/:idOrOid/comments', requireAuth, this.controller.createByPath);
-    
+
     /**
      * @swagger
      * /{tipo}/{idOrOid}/comments/{commentId}:
@@ -282,7 +281,7 @@ export default class CommentView {
      */
     // Editar comentario (admin)
     this.router.put('/:tipo/:idOrOid/comments/:commentId', requireAuth, this.controller.updateByPath);
-    
+
     /**
      * @swagger
      * /{tipo}/{idOrOid}/comments/{commentId}:
@@ -348,7 +347,7 @@ export default class CommentView {
      */
     // Eliminar un comentario usando la misma ruta base del recurso
     this.router.delete('/:tipo/:idOrOid/comments/:commentId', requireAuth, this.controller.removeByPath);
-    
+
     /**
      * @swagger
      * /{tipo}/{idOrOid}/comments/{commentId}/replies:
@@ -423,9 +422,9 @@ export default class CommentView {
      *             schema:
      *               $ref: '#/components/schemas/Error'
      */
-     // Responder a un comentario (auth)
+    // Responder a un comentario (auth)
     this.router.post('/:tipo/:idOrOid/comments/:commentId/replies', requireAuth, this.controller.replyByPath);
-    
+
     /**
      * @swagger
      * /comments:
@@ -491,7 +490,7 @@ export default class CommentView {
      *             schema:
      *               $ref: '#/components/schemas/Error'
      */
-  // Crear comentario requiere auth
-  this.router.post('/comments', requireAuth, this.controller.create);
+    // Crear comentario requiere auth
+    this.router.post('/comments', requireAuth, this.controller.create);
   }
 }

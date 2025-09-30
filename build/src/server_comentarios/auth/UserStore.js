@@ -8,7 +8,7 @@ class UserStore {
     constructor() {
         try {
             // Allow overriding the users file location via env (e.g., to mount a volume)
-            const p = process.env["USERS_FILE"] || (0, path_1.join)(process.cwd(), 'database', 'users.json');
+            const p = process.env['USERS_FILE'] || (0, path_1.join)(process.cwd(), 'database', 'users.json');
             const raw = (0, fs_1.readFileSync)(p, 'utf-8');
             this.users = JSON.parse(raw);
             if (!Array.isArray(this.users))

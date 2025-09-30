@@ -18,13 +18,13 @@ function requireAuth(req, res, next) {
     const qUser = (qq['usuario'] ?? qq['user']);
     const qRole = (qq['role'] ?? qq['rol']);
     const user = (hdrUser || bodyUser || qUser || '').toString().trim();
-    let role = (hdrRole || bodyRole || qRole || '').toString().trim().toLowerCase();
+    const role = (hdrRole || bodyRole || qRole || '').toString().trim().toLowerCase();
     if (!user) {
         res.status(401).json({ message: 'No autenticado: falta usuario' });
         return;
     }
     // Normalize role
-    const r = (role === 'administrator' || role === 'admin') ? 'admin' : 'player';
+    const r = role === 'administrator' || role === 'admin' ? 'admin' : 'player';
     req.auth = { user, role: r };
     next();
 }

@@ -1,7 +1,11 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-export interface UserRecord { username: string; password: string; role: 'player' | 'admin'; }
+export interface UserRecord {
+  username: string;
+  password: string;
+  role: 'player' | 'admin';
+}
 
 export class UserStore {
   private users: UserRecord[] = [];
@@ -9,7 +13,7 @@ export class UserStore {
   constructor() {
     try {
       // Allow overriding the users file location via env (e.g., to mount a volume)
-      const p = process.env["USERS_FILE"] || join(process.cwd(), 'database', 'users.json');
+      const p = process.env['USERS_FILE'] || join(process.cwd(), 'database', 'users.json');
       const raw = readFileSync(p, 'utf-8');
       this.users = JSON.parse(raw);
       if (!Array.isArray(this.users)) throw new Error('users.json debe ser un arreglo');

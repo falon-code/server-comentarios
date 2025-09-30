@@ -46,10 +46,16 @@ export default class ItemController {
   readonly get = async (req: Request, res: Response): Promise<void> => {
     try {
       const id = parseInt((req.params as any)['id'], 10);
-      if (isNaN(id)) { res.status(400).json({ message: 'ID inválido' }); return; }
+      if (isNaN(id)) {
+        res.status(400).json({ message: 'ID inválido' });
+        return;
+      }
 
       const item = await this.itemModel.getById(id);
-      if (!item) { res.status(404).json({ message: 'Item no encontrado' }); return; }
+      if (!item) {
+        res.status(404).json({ message: 'Item no encontrado' });
+        return;
+      }
 
       res.status(200).json(item);
     } catch (e: any) {

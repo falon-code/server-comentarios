@@ -7,13 +7,13 @@ class CommentModel {
     inventoryDbName;
     inventoryResolved = false;
     constructor() {
-        this.inventoryDbName = process.env["INVENTORY_DB_NAME"] || "Inventario";
+        this.inventoryDbName = process.env['INVENTORY_DB_NAME'] || 'Inventario';
     }
     // Resuelve la base de datos de INVENTARIO en el cliente de inventario (URI aparte)
     ensureInventoryDbResolved = async () => {
         if (this.inventoryResolved)
             return;
-        if (process.env["INVENTORY_DB_NAME"]) {
+        if (process.env['INVENTORY_DB_NAME']) {
             this.inventoryResolved = true;
             return;
         }
@@ -22,15 +22,15 @@ class CommentModel {
             const admin = client.db().admin();
             const { databases } = await admin.listDatabases();
             const names = databases.map(d => d.name);
-            const candidates = ["Inventario", "NexusBattlesIV", "comentarios", "test", "local"];
+            const candidates = ['Inventario', 'NexusBattlesIV', 'comentarios', 'test', 'local'];
             for (const c of candidates) {
                 if (!names.includes(c))
                     continue;
                 const cols = await client.db(c).listCollections().toArray();
                 const hasAny = cols.some(col => [
-                    process.env["INVENTORY_ITEMS_COLLECTION"] || 'items',
-                    process.env["INVENTORY_ARMORS_COLLECTION"] || 'armors',
-                    process.env["INVENTORY_WEAPONS_COLLECTION"] || 'weapons',
+                    process.env['INVENTORY_ITEMS_COLLECTION'] || 'items',
+                    process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors',
+                    process.env['INVENTORY_WEAPONS_COLLECTION'] || 'weapons',
                 ].includes(col.name));
                 if (hasAny) {
                     this.inventoryDbName = c;
@@ -53,9 +53,7 @@ class CommentModel {
         const usuario = String(input.usuario || '').trim();
         const comentario = String(input.comentario || '').trim();
         const valoracion = Number(input.valoracion);
-        const imagen = (input.hasOwnProperty('imagen'))
-            ? (input.imagen === null ? null : String(input.imagen))
-            : undefined;
+        const imagen = input.hasOwnProperty('imagen') ? (input.imagen === null ? null : String(input.imagen)) : undefined;
         const referencia = input.referencia || {};
         const tipo = referencia.tipo;
         const idRaw = referencia.id_objeto;
@@ -84,9 +82,9 @@ class CommentModel {
     async verifyReferenceExists(tipo, id_objeto) {
         await this.ensureInventoryDbResolved();
         const map = {
-            armor: process.env["INVENTORY_ARMORS_COLLECTION"] || 'armors',
-            item: process.env["INVENTORY_ITEMS_COLLECTION"] || 'items',
-            weapon: process.env["INVENTORY_WEAPONS_COLLECTION"] || 'weapons',
+            armor: process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors',
+            item: process.env['INVENTORY_ITEMS_COLLECTION'] || 'items',
+            weapon: process.env['INVENTORY_WEAPONS_COLLECTION'] || 'weapons',
         };
         const col = await (0, mongo_1.getGenericInventoryCollection)(this.inventoryDbName, map[tipo]);
         const doc = await col.findOne({ _id: id_objeto });
@@ -100,7 +98,7 @@ class CommentModel {
         if (!exists)
             throw new Error('Recurso referenciado no existe');
         // Evitar duplicado por usuario+referencia (regla de negocio opcional)
-        if (process.env["COMMENTS_UNIQUE_PER_USER"] === 'true') {
+        if (process.env['COMMENTS_UNIQUE_PER_USER'] === 'true') {
             const dup = await col.findOne({
                 usuario: data.usuario,
                 'referencia.tipo': data.referencia.tipo,
@@ -127,11 +125,7 @@ class CommentModel {
         const orderBy = options?.orderBy === 'valoracion' ? 'valoracion' : 'fecha';
         const order = options?.order === 'asc' ? 1 : -1;
         const sort = { [orderBy]: order };
-        return col.find(query)
-            .sort(sort)
-            .skip(skip)
-            .limit(limit)
-            .toArray();
+        return col.find(query).sort(sort).skip(skip).limit(limit).toArray();
     };
     // Obtiene resumen: info del producto, lista de comentarios (ordenada), y estadísticas de valoración
     getSummary = async (tipo, id_objeto, withProduct = true) => {
@@ -148,9 +142,9 @@ class CommentModel {
         let product;
         if (withProduct) {
             const map = {
-                armor: process.env["INVENTORY_ARMORS_COLLECTION"] || 'armors',
-                item: process.env["INVENTORY_ITEMS_COLLECTION"] || 'items',
-                weapon: process.env["INVENTORY_WEAPONS_COLLECTION"] || 'weapons',
+                armor: process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors',
+                item: process.env['INVENTORY_ITEMS_COLLECTION'] || 'items',
+                weapon: process.env['INVENTORY_WEAPONS_COLLECTION'] || 'weapons',
             };
             const col = await (0, mongo_1.getGenericInventoryCollection)(this.inventoryDbName, map[tipo]);
             const oid = new mongodb_1.ObjectId(id_objeto);
@@ -213,15 +207,15 @@ class CommentModel {
     resolveObjectIdByTipoAndLogicalId = async (tipo, id) => {
         await this.ensureInventoryDbResolved();
         const map = {
-            armor: process.env["INVENTORY_ARMORS_COLLECTION"] || 'armors',
-            item: process.env["INVENTORY_ITEMS_COLLECTION"] || 'items',
-            weapon: process.env["INVENTORY_WEAPONS_COLLECTION"] || 'weapons',
+            armor: process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors',
+            item: process.env['INVENTORY_ITEMS_COLLECTION'] || 'items',
+            weapon: process.env['INVENTORY_WEAPONS_COLLECTION'] || 'weapons',
         };
         const collectionName = map[tipo];
         const tryDbNames = [this.inventoryDbName];
-        if (!process.env["INVENTORY_DB_NAME"]) {
+        if (!process.env['INVENTORY_DB_NAME']) {
             // Añadir algunos candidatos comunes si no está fijado por env
-            for (const c of ["Inventario", "NexusBattlesIV", "nexusbattles", "comentarios", "test", "local"]) {
+            for (const c of ['Inventario', 'NexusBattlesIV', 'nexusbattles', 'comentarios', 'test', 'local']) {
                 if (!tryDbNames.includes(c))
                     tryDbNames.push(c);
             }
@@ -231,7 +225,7 @@ class CommentModel {
             try {
                 const col = await (0, mongo_1.getGenericInventoryCollection)(dbName, collectionName);
                 doc = await col.findOne({ $or: [{ id }, { id: String(id) }] });
-                if (doc && doc._id) {
+                if (doc?._id) {
                     this.inventoryDbName = dbName;
                     break;
                 }
@@ -240,7 +234,7 @@ class CommentModel {
                 // continuar con el siguiente candidato
             }
         }
-        if (!doc || !doc._id)
+        if (!doc?._id)
             throw new Error('Producto no encontrado por id lógico');
         return String(doc._id);
     };

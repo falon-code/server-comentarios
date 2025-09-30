@@ -17,10 +17,13 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   const qRole = (qq['role'] ?? qq['rol']) as string | undefined;
 
   const user = (hdrUser || bodyUser || qUser || '').toString().trim();
-  let role = (hdrRole || bodyRole || qRole || '').toString().trim().toLowerCase();
-  if (!user) { res.status(401).json({ message: 'No autenticado: falta usuario' }); return; }
+  const role = (hdrRole || bodyRole || qRole || '').toString().trim().toLowerCase();
+  if (!user) {
+    res.status(401).json({ message: 'No autenticado: falta usuario' });
+    return;
+  }
   // Normalize role
-  const r: 'admin' | 'player' = (role === 'administrator' || role === 'admin') ? 'admin' : 'player';
+  const r: 'admin' | 'player' = role === 'administrator' || role === 'admin' ? 'admin' : 'player';
   (req as any).auth = { user, role: r };
   next();
 }
@@ -29,7 +32,10 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 export function loginHandler(req: Request, res: Response, next: NextFunction): void {
   const headerUser = req.header('user');
   const headerPass = req.header('pass');
-  if (!headerUser || !headerPass) { res.status(400).json({ message: 'Faltan credenciales' }); return; }
+  if (!headerUser || !headerPass) {
+    res.status(400).json({ message: 'Faltan credenciales' });
+    return;
+  }
   // Mantener compatibilidad mínima: if provided, accept as-is and infer role 'player'
   (req as any).auth = { user: headerUser, role: 'player' };
   next();

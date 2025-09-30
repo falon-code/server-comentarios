@@ -5,15 +5,15 @@ export interface ArmorEffectInterface {
 }
 
 export default interface ArmorInterface {
-  _id?: string;         
+  _id?: string;
   image: string;
-  id: number;            // ID numérico propio
+  id: number; // ID numérico propio
   name: string;
   description: string;
   status: boolean;
   effects: ArmorEffectInterface[];
   dropRate: number;
   stock: number;
-  armorType: string;     // CHEST, HELMET, etc.
-  heroType: string;      // SHAMAN, TANK, etc.
+  armorType: string; // CHEST, HELMET, etc.
+  heroType: string; // SHAMAN, TANK, etc.
 }

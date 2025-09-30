@@ -38,7 +38,7 @@ export default class WeaponView {
      *               $ref: '#/components/schemas/Error'
      */
     this.router.get('/weapons', this.weaponController.list); // filtrar todo
-    
+
     /**
      * @swagger
      * /weapons/{id}:

@@ -24,16 +24,16 @@ let commentsClientPromise = null;
 let commentsClientInstance = null;
 let loggedCommentsConnection = false;
 // Configuración base (con defaults).
-const uri = process.env["MONGODB_URI"] || 'mongodb://localhost:27017';
-const dbName = process.env["MONGODB_DB"] || 'NexusBattlesIV';
-const collectionName = process.env["MONGODB_COLLECTION"] || 'comentarios';
+const uri = process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
+const dbName = process.env['MONGODB_DB'] || 'NexusBattlesIV';
+const collectionName = process.env['MONGODB_COLLECTION'] || 'comentarios';
 // Permite definir una base específica para los comentarios
-const commentsDbName = process.env["MONGODB_DB_COMMENTS"] || dbName;
+const commentsDbName = process.env['MONGODB_DB_COMMENTS'] || dbName;
 let detectedCommentsDbName = null;
 let commentsDbResolved = false;
 // URI alterna para inventario (si no se define, reutiliza la principal)
-const inventoryUri = process.env["MONGODB_URI_INVENTORY"] || process.env["MONGODB_URI"] || 'mongodb://localhost:27017';
-const commentsUri = process.env["MONGODB_URI_COMMENTS"] || process.env["MONGODB_URI"] || 'mongodb://localhost:27017';
+const inventoryUri = process.env['MONGODB_URI_INVENTORY'] || process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
+const commentsUri = process.env['MONGODB_URI_COMMENTS'] || process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
 /**
  * - Si ya hay una instancia conectada la devuelve.
  * - Si no existe, crea una sola promesa de conexión para evitar carreras.
@@ -45,14 +45,17 @@ async function getMongoClient() {
         return clientInstance;
     if (!clientPromise) {
         const client = new mongodb_1.MongoClient(uri);
-        clientPromise = client.connect().then(c => {
+        clientPromise = client
+            .connect()
+            .then(c => {
             clientInstance = c;
             if (!loggedConnection) {
                 console.log(`[Mongo] Conectado a ${uri} / DB: ${dbName}`);
                 loggedConnection = true;
             }
             return c;
-        }).catch(err => {
+        })
+            .catch(err => {
             console.error('[Mongo] Error de conexión inicial:', err);
             clientPromise = null; // permitir reintentos
             throw err;
@@ -69,14 +72,17 @@ async function getInventoryMongoClient() {
         return inventoryClientInstance;
     if (!inventoryClientPromise) {
         const client = new mongodb_1.MongoClient(inventoryUri);
-        inventoryClientPromise = client.connect().then(c => {
+        inventoryClientPromise = client
+            .connect()
+            .then(c => {
             inventoryClientInstance = c;
             if (!loggedInventoryConnection) {
                 console.log(`[Mongo][Inventory] Conectado a ${inventoryUri}`);
                 loggedInventoryConnection = true;
             }
             return c;
-        }).catch(err => {
+        })
+            .catch(err => {
             console.error('[Mongo][Inventory] Error de conexión inicial:', err);
             inventoryClientPromise = null;
             throw err;
@@ -93,14 +99,17 @@ async function getCommentsMongoClient() {
         return commentsClientInstance;
     if (!commentsClientPromise) {
         const client = new mongodb_1.MongoClient(commentsUri);
-        commentsClientPromise = client.connect().then(c => {
+        commentsClientPromise = client
+            .connect()
+            .then(c => {
             commentsClientInstance = c;
             if (!loggedCommentsConnection) {
                 console.log(`[Mongo][Comments] Conectado a ${commentsUri} / DB: ${commentsDbName}`);
                 loggedCommentsConnection = true;
             }
             return c;
-        }).catch(err => {
+        })
+            .catch(err => {
             console.error('[Mongo][Comments] Error de conexión inicial:', err);
             commentsClientPromise = null;
             throw err;
@@ -122,7 +131,7 @@ async function getDb() {
 async function getCommentsDb() {
     const client = await getCommentsMongoClient();
     // Si el usuario fijó explícitamente la DB de comentarios, úsala.
-    if (process.env["MONGODB_DB_COMMENTS"]) {
+    if (process.env['MONGODB_DB_COMMENTS']) {
         return client.db(commentsDbName);
     }
     // Intentar autodetección una sola vez (por colección de comentarios)
@@ -139,7 +148,9 @@ async function getCommentsDb() {
                         break;
                     }
                 }
-                catch { /* ignore dbs without permission */ }
+                catch {
+                    /* ignore dbs without permission */
+                }
             }
         }
         catch (e) {
@@ -184,7 +195,7 @@ async function ensureIndexes() {
     await Promise.all([
         col.createIndex({ productoId: 1, eliminado: 1, id: 1 }),
         col.createIndex({ id: 1 }, { unique: true }),
-        col.createIndex({ tipoProducto: 1, productoId: 1, eliminado: 1, fecha: -1 })
+        col.createIndex({ tipoProducto: 1, productoId: 1, eliminado: 1, fecha: -1 }),
     ]).catch(err => console.error('Error creando índices comentarios:', err));
     indexesEnsured = true;
 }

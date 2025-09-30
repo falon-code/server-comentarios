@@ -38,7 +38,7 @@ export default class ItemView {
      *               $ref: '#/components/schemas/Error'
      */
     this.router.get('/items', this.itemController.list); // filtrar todo
-    
+
     /**
      * @swagger
      * /items/{id}:

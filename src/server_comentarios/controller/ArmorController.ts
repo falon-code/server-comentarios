@@ -36,9 +36,15 @@ export default class ArmorController {
   readonly get = async (req: Request, res: Response): Promise<void> => {
     try {
       const id = parseInt((req.params as any)['id'], 10);
-      if (isNaN(id)) { res.status(400).json({ message: 'ID inválido' }); return; }
+      if (isNaN(id)) {
+        res.status(400).json({ message: 'ID inválido' });
+        return;
+      }
       const armor = await this.armorModel.getById(id);
-      if (!armor) { res.status(404).json({ message: 'Armor no encontrado' }); return; }
+      if (!armor) {
+        res.status(404).json({ message: 'Armor no encontrado' });
+        return;
+      }
       res.status(200).json(armor);
     } catch (e) {
       res.status(500).json({ message: 'Error al obtener armor', error: (e as Error).message });

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import AuthController from "../controller/AuthController";
-import { loginHandler } from "../middleware/auth";
+import AuthController from '../controller/AuthController';
+import { loginHandler } from '../middleware/auth';
 
 export default class AuthView {
   public readonly router: Router;

@@ -28,9 +28,16 @@ class Server {
         // Configurar CORS para permitir peticiones desde el cliente
         this.app.use((0, cors_1.default)({
             // Permite puertos comunes en desarrollo desde localhost y 127.0.0.1
-            origin: [/^http:\/\/localhost(?::\d+)?$/, /^http:\/\/127\.0\.0\.1(?::\d+)?$/, "http://nexus-battle.com", "http://nexus-battle.com:80", "http://nexus-battle.com:8080", "http://nexus-battle.com:4200"],
+            origin: [
+                /^http:\/\/localhost(?::\d+)?$/,
+                /^http:\/\/127\.0\.0\.1(?::\d+)?$/,
+                'http://nexus-battle.com',
+                'http://nexus-battle.com:80',
+                'http://nexus-battle.com:8080',
+                'http://nexus-battle.com:4200',
+            ],
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-user', 'x-auth-role', 'user', 'pass']
+            allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-user', 'x-auth-role', 'user', 'pass'],
         }));
         // Configurar middleware para procesar JSON y datos de formulario
         this.app.use(express_1.default.json({ limit: '10mb' }));
@@ -41,7 +48,7 @@ class Server {
         this.app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerConfig_1.default, {
             explorer: true,
             customCss: '.swagger-ui .topbar { display: none }',
-            customSiteTitle: "API Comentarios - Documentación"
+            customSiteTitle: 'API Comentarios - Documentación',
         }));
         // Ruta para obtener la especificación JSON de Swagger
         this.app.get('/api-docs.json', (_req, res) => {
@@ -55,7 +62,7 @@ class Server {
         this.app.use('/api', this.authView.router);
     };
     start = () => {
-        const port = Number(process.env["PORT"]) || 1802;
+        const port = Number(process.env['PORT']) || 1802;
         this.app.listen(port, () => {
             console.log(`Server running on http://localhost:${port}`);
         });

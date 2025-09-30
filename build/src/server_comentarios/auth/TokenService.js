@@ -16,7 +16,13 @@ function signToken(payload, ttlSeconds = 7200, secret = process.env['AUTH_SECRET
     const h64 = base64url(JSON.stringify(header));
     const p64 = base64url(JSON.stringify(full));
     const data = `${h64}.${p64}`;
-    const sig = crypto_1.default.createHmac('sha256', secret).update(data).digest('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const sig = crypto_1.default
+        .createHmac('sha256', secret)
+        .update(data)
+        .digest('base64')
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
     return `${data}.${sig}`;
 }
 function verifyToken(token, secret = process.env['AUTH_SECRET'] || 'dev-secret') {
@@ -25,7 +31,13 @@ function verifyToken(token, secret = process.env['AUTH_SECRET'] || 'dev-secret')
         return null;
     const [h64, p64, sig] = parts;
     const data = `${h64}.${p64}`;
-    const expected = crypto_1.default.createHmac('sha256', secret).update(data).digest('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const expected = crypto_1.default
+        .createHmac('sha256', secret)
+        .update(data)
+        .digest('base64')
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
     if (sig !== expected)
         return null;
     try {

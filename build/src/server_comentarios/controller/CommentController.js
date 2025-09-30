@@ -162,8 +162,7 @@ class CommentController {
                 res.status(404).json({ message: 'Comentario no encontrado' });
                 return;
             }
-            const belongs = comment.referencia?.tipo === tipo
-                && String(comment.referencia?.id_objeto) === String(oid);
+            const belongs = comment.referencia?.tipo === tipo && String(comment.referencia?.id_objeto) === String(oid);
             if (!belongs) {
                 res.status(400).json({ message: 'El comentario no corresponde al recurso indicado' });
                 return;
@@ -178,8 +177,7 @@ class CommentController {
                 res.status(400).json({ message: 'No está permitido editar la imagen del comentario' });
                 return;
             }
-            if ((typeof comentario === 'undefined') &&
-                (typeof valoracion === 'undefined')) {
+            if (typeof comentario === 'undefined' && typeof valoracion === 'undefined') {
                 res.status(400).json({ message: 'Debe enviar al menos un campo: comentario o valoracion' });
                 return;
             }
@@ -239,8 +237,7 @@ class CommentController {
                 res.status(404).json({ message: 'Comentario no encontrado' });
                 return;
             }
-            const belongs = comment.referencia?.tipo === tipo
-                && String(comment.referencia?.id_objeto) === String(oid);
+            const belongs = comment.referencia?.tipo === tipo && String(comment.referencia?.id_objeto) === String(oid);
             if (!belongs) {
                 res.status(400).json({ message: 'El comentario no corresponde al recurso indicado' });
                 return;
@@ -298,8 +295,7 @@ class CommentController {
                 res.status(404).json({ message: 'Comentario no encontrado' });
                 return;
             }
-            const belongs = comment.referencia?.tipo === tipo
-                && String(comment.referencia?.id_objeto) === String(oid);
+            const belongs = comment.referencia?.tipo === tipo && String(comment.referencia?.id_objeto) === String(oid);
             if (!belongs) {
                 res.status(400).json({ message: 'El comentario no corresponde al recurso indicado' });
                 return;

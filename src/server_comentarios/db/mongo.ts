@@ -16,17 +16,17 @@ let commentsClientInstance: MongoClient | null = null;
 let loggedCommentsConnection = false;
 
 // Configuración base (con defaults).
-const uri = process.env["MONGODB_URI"] || 'mongodb://localhost:27017';
-const dbName = process.env["MONGODB_DB"] || 'NexusBattlesIV';
-const collectionName = process.env["MONGODB_COLLECTION"] || 'comentarios';
+const uri = process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
+const dbName = process.env['MONGODB_DB'] || 'NexusBattlesIV';
+const collectionName = process.env['MONGODB_COLLECTION'] || 'comentarios';
 // Permite definir una base específica para los comentarios
-const commentsDbName = process.env["MONGODB_DB_COMMENTS"] || dbName;
+const commentsDbName = process.env['MONGODB_DB_COMMENTS'] || dbName;
 let detectedCommentsDbName: string | null = null;
 let commentsDbResolved = false;
 
 // URI alterna para inventario (si no se define, reutiliza la principal)
-const inventoryUri = process.env["MONGODB_URI_INVENTORY"] || process.env["MONGODB_URI"] || 'mongodb://localhost:27017';
-const commentsUri = process.env["MONGODB_URI_COMMENTS"] || process.env["MONGODB_URI"] || 'mongodb://localhost:27017';
+const inventoryUri = process.env['MONGODB_URI_INVENTORY'] || process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
+const commentsUri = process.env['MONGODB_URI_COMMENTS'] || process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
 
 /**
  * - Si ya hay una instancia conectada la devuelve.
@@ -38,18 +38,21 @@ export async function getMongoClient(): Promise<MongoClient> {
   if (clientInstance) return clientInstance;
   if (!clientPromise) {
     const client = new MongoClient(uri);
-    clientPromise = client.connect().then(c => {
-      clientInstance = c;
-      if (!loggedConnection) {
-        console.log(`[Mongo] Conectado a ${uri} / DB: ${dbName}`);
-        loggedConnection = true;
-      }
-      return c;
-    }).catch(err => {
-      console.error('[Mongo] Error de conexión inicial:', err);
-      clientPromise = null; // permitir reintentos
-      throw err;
-    });
+    clientPromise = client
+      .connect()
+      .then(c => {
+        clientInstance = c;
+        if (!loggedConnection) {
+          console.log(`[Mongo] Conectado a ${uri} / DB: ${dbName}`);
+          loggedConnection = true;
+        }
+        return c;
+      })
+      .catch(err => {
+        console.error('[Mongo] Error de conexión inicial:', err);
+        clientPromise = null; // permitir reintentos
+        throw err;
+      });
   }
   return clientPromise;
 }
@@ -62,18 +65,21 @@ export async function getInventoryMongoClient(): Promise<MongoClient> {
   if (inventoryClientInstance) return inventoryClientInstance;
   if (!inventoryClientPromise) {
     const client = new MongoClient(inventoryUri);
-    inventoryClientPromise = client.connect().then(c => {
-      inventoryClientInstance = c;
-      if (!loggedInventoryConnection) {
-        console.log(`[Mongo][Inventory] Conectado a ${inventoryUri}`);
-        loggedInventoryConnection = true;
-      }
-      return c;
-    }).catch(err => {
-      console.error('[Mongo][Inventory] Error de conexión inicial:', err);
-      inventoryClientPromise = null;
-      throw err;
-    });
+    inventoryClientPromise = client
+      .connect()
+      .then(c => {
+        inventoryClientInstance = c;
+        if (!loggedInventoryConnection) {
+          console.log(`[Mongo][Inventory] Conectado a ${inventoryUri}`);
+          loggedInventoryConnection = true;
+        }
+        return c;
+      })
+      .catch(err => {
+        console.error('[Mongo][Inventory] Error de conexión inicial:', err);
+        inventoryClientPromise = null;
+        throw err;
+      });
   }
   return inventoryClientPromise;
 }
@@ -86,18 +92,21 @@ export async function getCommentsMongoClient(): Promise<MongoClient> {
   if (commentsClientInstance) return commentsClientInstance;
   if (!commentsClientPromise) {
     const client = new MongoClient(commentsUri);
-    commentsClientPromise = client.connect().then(c => {
-      commentsClientInstance = c;
-      if (!loggedCommentsConnection) {
-        console.log(`[Mongo][Comments] Conectado a ${commentsUri} / DB: ${commentsDbName}`);
-        loggedCommentsConnection = true;
-      }
-      return c;
-    }).catch(err => {
-      console.error('[Mongo][Comments] Error de conexión inicial:', err);
-      commentsClientPromise = null;
-      throw err;
-    });
+    commentsClientPromise = client
+      .connect()
+      .then(c => {
+        commentsClientInstance = c;
+        if (!loggedCommentsConnection) {
+          console.log(`[Mongo][Comments] Conectado a ${commentsUri} / DB: ${commentsDbName}`);
+          loggedCommentsConnection = true;
+        }
+        return c;
+      })
+      .catch(err => {
+        console.error('[Mongo][Comments] Error de conexión inicial:', err);
+        commentsClientPromise = null;
+        throw err;
+      });
   }
   return commentsClientPromise;
 }
@@ -117,7 +126,7 @@ export async function getDb(): Promise<Db> {
 async function getCommentsDb(): Promise<Db> {
   const client = await getCommentsMongoClient();
   // Si el usuario fijó explícitamente la DB de comentarios, úsala.
-  if (process.env["MONGODB_DB_COMMENTS"]) {
+  if (process.env['MONGODB_DB_COMMENTS']) {
     return client.db(commentsDbName);
   }
   // Intentar autodetección una sola vez (por colección de comentarios)
@@ -133,7 +142,9 @@ async function getCommentsDb(): Promise<Db> {
             console.log(`[Mongo][Comments] DB detectada: ${detectedCommentsDbName}`);
             break;
           }
-        } catch { /* ignore dbs without permission */ }
+        } catch {
+          /* ignore dbs without permission */
+        }
       }
     } catch (e) {
       console.warn('[Mongo][Comments] No se pudo autodetectar DB, uso fallback:', commentsDbName, (e as Error).message);
@@ -153,7 +164,10 @@ export async function getCommentsCollection<T extends Document>(): Promise<Colle
  * - Sirve para acceder a cualquier base y colección (ej: autodetección en modelos de inventario).
  * - No crea nuevas conexiones, reutiliza el cliente existente.
  */
-export async function getGenericCollection<T extends Document>(dbTarget: string, collection: string): Promise<Collection<T>> {
+export async function getGenericCollection<T extends Document>(
+  dbTarget: string,
+  collection: string
+): Promise<Collection<T>> {
   const client = await getMongoClient();
   return client.db(dbTarget).collection<T>(collection);
 }
@@ -161,7 +175,10 @@ export async function getGenericCollection<T extends Document>(dbTarget: string,
 /**
  * - Versión para INVENTARIO: permite acceder a cualquier base/colección sobre el cliente de inventario.
  */
-export async function getGenericInventoryCollection<T extends Document>(dbTarget: string, collection: string): Promise<Collection<T>> {
+export async function getGenericInventoryCollection<T extends Document>(
+  dbTarget: string,
+  collection: string
+): Promise<Collection<T>> {
   const client = await getInventoryMongoClient();
   return client.db(dbTarget).collection<T>(collection);
 }
@@ -180,7 +197,7 @@ export async function ensureIndexes() {
   await Promise.all([
     col.createIndex({ productoId: 1, eliminado: 1, id: 1 }),
     col.createIndex({ id: 1 }, { unique: true }),
-    col.createIndex({ tipoProducto: 1, productoId: 1, eliminado: 1, fecha: -1 })
+    col.createIndex({ tipoProducto: 1, productoId: 1, eliminado: 1, fecha: -1 }),
   ]).catch(err => console.error('Error creando índices comentarios:', err));
   indexesEnsured = true;
 }
@@ -210,8 +227,7 @@ export async function closeMongo() {
     clientInstance = null;
     clientPromise = null;
     indexesEnsured = false;
-
-    }
+  }
   if (inventoryClientInstance) {
     await inventoryClientInstance.close();
     inventoryClientInstance = null;

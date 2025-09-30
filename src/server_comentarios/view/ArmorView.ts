@@ -39,7 +39,7 @@ export default class ArmorView {
      *               $ref: '#/components/schemas/Error'
      */
     this.router.get('/armors', this.armorController.list); // filtrar todo
-    
+
     /**
      * @swagger
      * /armors/{id}:
