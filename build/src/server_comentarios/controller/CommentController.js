@@ -8,7 +8,7 @@ class CommentController {
     // POST /api/comments  (auth requerido)
     create = async (req, res) => {
         try {
-            const body = req.body || {};
+            const body = req.body ?? {};
             // Sobrescribir usuario desde auth si viene
             const auth = req.auth;
             if (auth?.user)

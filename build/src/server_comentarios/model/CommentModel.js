@@ -7,7 +7,7 @@ class CommentModel {
     inventoryDbName;
     inventoryResolved = false;
     constructor() {
-        this.inventoryDbName = process.env['INVENTORY_DB_NAME'] || 'Inventario';
+        this.inventoryDbName = process.env['INVENTORY_DB_NAME'] ?? 'Inventario';
     }
     // Resuelve la base de datos de INVENTARIO en el cliente de inventario (URI aparte)
     ensureInventoryDbResolved = async () => {
@@ -28,9 +28,9 @@ class CommentModel {
                     continue;
                 const cols = await client.db(c).listCollections().toArray();
                 const hasAny = cols.some(col => [
-                    process.env['INVENTORY_ITEMS_COLLECTION'] || 'items',
-                    process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors',
-                    process.env['INVENTORY_WEAPONS_COLLECTION'] || 'weapons',
+                    process.env['INVENTORY_ITEMS_COLLECTION'] ?? 'items',
+                    process.env['INVENTORY_ARMORS_COLLECTION'] ?? 'armors',
+                    process.env['INVENTORY_WEAPONS_COLLECTION'] ?? 'weapons',
                 ].includes(col.name));
                 if (hasAny) {
                     this.inventoryDbName = c;
@@ -50,13 +50,17 @@ class CommentModel {
     normalize(input) {
         if (!input || typeof input !== 'object')
             throw new Error('Payload inválido');
-        const usuario = String(input.usuario || '').trim();
-        const comentario = String(input.comentario || '').trim();
-        const valoracion = Number(input.valoracion);
-        const imagen = input.hasOwnProperty('imagen') ? (input.imagen === null ? null : String(input.imagen)) : undefined;
-        const referencia = input.referencia || {};
-        const tipo = referencia.tipo;
-        const idRaw = referencia.id_objeto;
+        const usuario = String(input['usuario'] ?? '').trim();
+        const comentario = String(input['comentario'] ?? '').trim();
+        const valoracion = Number(input['valoracion']);
+        const imagen = Object.prototype.hasOwnProperty.call(input, 'imagen')
+            ? input['imagen'] === null
+                ? null
+                : String(input['imagen'])
+            : undefined;
+        const referencia = input['referencia'] ?? {};
+        const tipo = referencia['tipo'];
+        const idRaw = referencia['id_objeto'];
         if (!usuario || usuario.length < 3)
             throw new Error('usuario requerido (>=3 chars)');
         if (!comentario || comentario.length < 1)
@@ -72,7 +76,7 @@ class CommentModel {
         catch {
             throw new Error('referencia.id_objeto inválido');
         }
-        const fecha = input.fecha ? new Date(input.fecha) : new Date();
+        const fecha = input['fecha'] ? new Date(input['fecha']) : new Date();
         const base = { usuario, comentario, valoracion, fecha, referencia: { tipo, id_objeto } };
         if (imagen !== undefined)
             base.imagen = imagen;
@@ -82,9 +86,9 @@ class CommentModel {
     async verifyReferenceExists(tipo, id_objeto) {
         await this.ensureInventoryDbResolved();
         const map = {
-            armor: process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors',
-            item: process.env['INVENTORY_ITEMS_COLLECTION'] || 'items',
-            weapon: process.env['INVENTORY_WEAPONS_COLLECTION'] || 'weapons',
+            armor: process.env['INVENTORY_ARMORS_COLLECTION'] ?? 'armors',
+            item: process.env['INVENTORY_ITEMS_COLLECTION'] ?? 'items',
+            weapon: process.env['INVENTORY_WEAPONS_COLLECTION'] ?? 'weapons',
         };
         const col = await (0, mongo_1.getGenericInventoryCollection)(this.inventoryDbName, map[tipo]);
         const doc = await col.findOne({ _id: id_objeto });
@@ -120,12 +124,20 @@ class CommentModel {
         catch {
             throw new Error('id_objeto inválido');
         }
-        const query = { 'referencia.tipo': tipo, 'referencia.id_objeto': oid, eliminado: { $ne: true } };
+        const query = {
+            'referencia.tipo': tipo,
+            'referencia.id_objeto': oid,
+            eliminado: { $ne: true },
+        };
         // Ordenamiento
         const orderBy = options?.orderBy === 'valoracion' ? 'valoracion' : 'fecha';
         const order = options?.order === 'asc' ? 1 : -1;
-        const sort = { [orderBy]: order };
-        return col.find(query).sort(sort).skip(skip).limit(limit).toArray();
+        return col
+            .find(query)
+            .sort({ [orderBy]: order })
+            .skip(skip)
+            .limit(limit)
+            .toArray();
     };
     // Obtiene resumen: info del producto, lista de comentarios (ordenada), y estadísticas de valoración
     getSummary = async (tipo, id_objeto, withProduct = true) => {
@@ -133,24 +145,28 @@ class CommentModel {
         const comments = await this.listByReference(tipo, id_objeto, 200, 0);
         const stats = comments.reduce((acc, c) => {
             acc.count += 1;
-            acc.sum += Number(c.valoracion || 0);
-            const k = String(c.valoracion || 0);
-            acc.dist[k] = (acc.dist[k] || 0) + 1;
+            acc.sum += Number(c.valoracion ?? 0);
+            const k = String(c.valoracion ?? 0);
+            acc.dist[k] = (acc.dist[k] ?? 0) + 1;
             return acc;
         }, { count: 0, sum: 0, dist: {} });
         const average = stats.count ? +(stats.sum / stats.count).toFixed(2) : 0;
         let product;
         if (withProduct) {
             const map = {
-                armor: process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors',
-                item: process.env['INVENTORY_ITEMS_COLLECTION'] || 'items',
-                weapon: process.env['INVENTORY_WEAPONS_COLLECTION'] || 'weapons',
+                armor: process.env['INVENTORY_ARMORS_COLLECTION'] ?? 'armors',
+                item: process.env['INVENTORY_ITEMS_COLLECTION'] ?? 'items',
+                weapon: process.env['INVENTORY_WEAPONS_COLLECTION'] ?? 'weapons',
             };
             const col = await (0, mongo_1.getGenericInventoryCollection)(this.inventoryDbName, map[tipo]);
             const oid = new mongodb_1.ObjectId(id_objeto);
-            product = await col.findOne({ _id: oid });
+            product = (await col.findOne({ _id: oid })) ?? undefined;
         }
-        return { product, comments, stats: { count: stats.count, average, distribution: stats.dist } };
+        const result = { comments, stats: { count: stats.count, average, distribution: stats.dist } };
+        if (product) {
+            result.product = product;
+        }
+        return result;
     };
     // Obtiene un comentario por su _id (ObjectId)
     getById = async (_id) => {
@@ -169,13 +185,13 @@ class CommentModel {
     update = async (_id, updates, actor) => {
         // Validaciones en memoria; no requiere DB de inventario
         const set = { updatedAt: new Date(), updatedBy: actor };
-        if (updates.hasOwnProperty('comentario')) {
+        if (Object.prototype.hasOwnProperty.call(updates, 'comentario')) {
             const c = (updates.comentario ?? '').toString().trim();
             if (!c)
                 throw new Error('comentario requerido');
             set.comentario = c;
         }
-        if (updates.hasOwnProperty('valoracion')) {
+        if (Object.prototype.hasOwnProperty.call(updates, 'valoracion')) {
             const v = Number(updates.valoracion);
             if (!Number.isInteger(v) || v < 1 || v > 5)
                 throw new Error('valoracion 1..5 requerida');
@@ -207,9 +223,9 @@ class CommentModel {
     resolveObjectIdByTipoAndLogicalId = async (tipo, id) => {
         await this.ensureInventoryDbResolved();
         const map = {
-            armor: process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors',
-            item: process.env['INVENTORY_ITEMS_COLLECTION'] || 'items',
-            weapon: process.env['INVENTORY_WEAPONS_COLLECTION'] || 'weapons',
+            armor: process.env['INVENTORY_ARMORS_COLLECTION'] ?? 'armors',
+            item: process.env['INVENTORY_ITEMS_COLLECTION'] ?? 'items',
+            weapon: process.env['INVENTORY_WEAPONS_COLLECTION'] ?? 'weapons',
         };
         const collectionName = map[tipo];
         const tryDbNames = [this.inventoryDbName];

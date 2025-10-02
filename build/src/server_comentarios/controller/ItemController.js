@@ -34,7 +34,8 @@ class ItemController {
             res.status(200).json(items);
         }
         catch (e) {
-            res.status(500).json({ message: 'Error al obtener items', error: e.message });
+            const error = e;
+            res.status(500).json({ message: 'Error al obtener items', error: error.message });
         }
     };
     /*
@@ -63,7 +64,8 @@ class ItemController {
             res.status(200).json(item);
         }
         catch (e) {
-            res.status(500).json({ message: 'Error al obtener item', error: e.message });
+            const error = e;
+            res.status(500).json({ message: 'Error al obtener item', error: error.message });
         }
     };
 }

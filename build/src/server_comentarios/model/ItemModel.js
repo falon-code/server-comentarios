@@ -7,8 +7,8 @@ class ItemModel {
     resolved = false;
     constructor() {
         // Valor inicial (puede cambiar si autodetección encuentra otra DB con la colección).
-        this.dbName = process.env['INVENTORY_DB_NAME'] || 'Inventario';
-        this.collectionName = process.env['INVENTORY_ITEMS_COLLECTION'] || 'items';
+        this.dbName = process.env['INVENTORY_DB_NAME'] ?? 'Inventario';
+        this.collectionName = process.env['INVENTORY_ITEMS_COLLECTION'] ?? 'items';
     }
     /*
      * Este método se ejecuta una única vez para asegurar que la base de datos utilizada por el modelo de armaduras esté correctamente resuelta.
@@ -52,10 +52,10 @@ class ItemModel {
         await this.ensureDbResolved();
         const col = await (0, mongo_1.getGenericInventoryCollection)(this.dbName, this.collectionName);
         const query = {};
-        if (filters && typeof filters.heroType === 'string')
-            query.heroType = filters.heroType;
-        if (typeof filters?.status !== 'undefined')
-            query.status = filters.status === 'true' || filters.status === true;
+        if (filters && typeof filters['heroType'] === 'string')
+            query['heroType'] = filters['heroType'];
+        if (typeof filters?.['status'] !== 'undefined')
+            query['status'] = filters['status'] === 'true' || filters['status'] === true;
         if (filters && typeof filters.effectType === 'string')
             query['effects.effectType'] = filters.effectType; // items que tengan al menos un efecto con ese effectType
         // Name filter (case-insensitive, matches 'name' or 'nombre')
@@ -63,7 +63,7 @@ class ItemModel {
             const name = filters.name.trim();
             const re = new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
             // Match by english 'name' field
-            query.name = re;
+            query['name'] = re;
             const docs = await col.find(query).toArray();
             // Exact-match-first sort without losing stable order:
             const lower = name.toLowerCase();

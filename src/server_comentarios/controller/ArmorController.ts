@@ -35,7 +35,7 @@ export default class ArmorController {
   */
   readonly get = async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt((req.params as any)['id'], 10);
+      const id = parseInt((req.params as { id: string })['id'], 10);
       if (isNaN(id)) {
         res.status(400).json({ message: 'ID inválido' });
         return;

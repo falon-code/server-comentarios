@@ -6,8 +6,8 @@ class ArmorModel {
     collectionName;
     resolved = false;
     constructor() {
-        this.dbName = process.env['INVENTORY_DB_NAME'] || 'Inventario'; // valor inicial (puede cambiar tras autodetección)
-        this.collectionName = process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors';
+        this.dbName = process.env['INVENTORY_DB_NAME'] ?? 'Inventario'; // valor inicial (puede cambiar tras autodetección)
+        this.collectionName = process.env['INVENTORY_ARMORS_COLLECTION'] ?? 'armors';
     }
     /*
      * Este método se ejecuta una única vez para asegurar que la base de datos utilizada por el modelo de armaduras esté correctamente resuelta.
@@ -51,12 +51,12 @@ class ArmorModel {
         await this.ensureDbResolved();
         const col = await (0, mongo_1.getGenericInventoryCollection)(this.dbName, this.collectionName);
         const query = {};
-        if (filters && typeof filters.heroType === 'string')
-            query.heroType = filters.heroType;
-        if (filters && typeof filters.armorType === 'string')
-            query.armorType = filters.armorType;
-        if (typeof filters?.status !== 'undefined')
-            query.status = filters.status === 'true' || filters.status === true;
+        if (filters && typeof filters['heroType'] === 'string')
+            query['heroType'] = filters['heroType'];
+        if (filters && typeof filters['armorType'] === 'string')
+            query['armorType'] = filters['armorType'];
+        if (typeof filters?.['status'] !== 'undefined')
+            query['status'] = filters['status'] === 'true' || filters['status'] === true;
         const docs = await col.find(query).sort({ id: 1 }).toArray();
         console.log(`[ArmorModel] getAll query=${JSON.stringify(query)} returned=${docs.length}`);
         return docs;

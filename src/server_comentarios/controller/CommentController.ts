@@ -7,14 +7,14 @@ export default class CommentController {
   // POST /api/comments  (auth requerido)
   readonly create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const body = req.body || {};
+      const body = req.body ?? {};
       // Sobrescribir usuario desde auth si viene
-      const auth = (req as any).auth;
+      const auth = (req as { auth?: { user: string } }).auth;
       if (auth?.user) body.usuario = auth.user;
       const doc = await this.model.create(body);
       res.status(201).json(doc);
-    } catch (e: any) {
-      const msg = e?.message || 'Error creando comentario';
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Error creando comentario';
       const code = /recurso referenciado/i.test(msg) || /inválid/i.test(msg) ? 400 : 500;
       res.status(code).json({ message: 'No se pudo crear comentario', error: msg });
     }
@@ -38,7 +38,7 @@ export default class CommentController {
       const oid = isObjectId
         ? idOrOid
         : await this.model.resolveObjectIdByTipoAndLogicalId(tipo as any, Number(idOrOid));
-      const auth = (req as any).auth as { user: string; role: 'player' | 'admin' } | undefined;
+      const auth = (req as { auth?: { user: string; role: 'player' | 'admin' } }).auth;
       const usuario = (auth?.user || req.body?.usuario || '').toString().trim();
       if (!usuario) {
         res.status(400).json({ message: 'usuario requerido' });
@@ -52,8 +52,8 @@ export default class CommentController {
       payload.referencia = { tipo: tipo as any, id_objeto: oid };
       const doc = await this.model.create(payload);
       res.status(201).json(doc);
-    } catch (e: any) {
-      const msg = e?.message || 'Error creando comentario';
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Error creando comentario';
       const code = /inválid|requerid|encontrado/i.test(msg) ? 400 : 500;
       res.status(code).json({ message: 'No se pudo crear comentario', error: msg });
     }
@@ -79,8 +79,8 @@ export default class CommentController {
         : await this.model.resolveObjectIdByTipoAndLogicalId(tipo as any, Number(idOrOid));
       const data = await this.model.getSummary(tipo as any, oid, true);
       res.status(200).json(data);
-    } catch (e: any) {
-      const msg = e?.message || 'Error obteniendo resumen';
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Error obteniendo resumen';
       const code = /inválid|no encontrado/i.test(msg) ? 400 : 500;
       res.status(code).json({ message: 'No se pudo obtener resumen', error: msg });
     }
@@ -113,8 +113,8 @@ export default class CommentController {
       };
       const comments = await this.model.listByReference(tipo as any, oid, lim, sk, opts);
       res.status(200).json(comments);
-    } catch (e: any) {
-      const msg = e?.message || 'Error listando comentarios';
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Error listando comentarios';
       const code = /inválid|no encontrado/i.test(msg) ? 400 : 500;
       res.status(code).json({ message: 'No se pudo listar comentarios', error: msg });
     }
@@ -188,8 +188,8 @@ export default class CommentController {
         return;
       }
       res.status(200).json({ ok: true, id: commentId });
-    } catch (e: any) {
-      const msg = e?.message || 'Error editando comentario';
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Error editando comentario';
       const code = /inválid|no encontrado|requerid/i.test(msg) ? 400 : 500;
       res.status(code).json({ message: 'No se pudo editar comentario', error: msg });
     }
@@ -259,8 +259,8 @@ export default class CommentController {
         return;
       }
       res.status(200).json({ ok: true, id: commentId, eliminado: true });
-    } catch (e: any) {
-      const msg = e?.message || 'Error eliminando comentario';
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Error eliminando comentario';
       const code = /inválid|no encontrado/i.test(msg) ? 400 : 500;
       res.status(code).json({ message: 'No se pudo eliminar comentario', error: msg });
     }
@@ -328,8 +328,8 @@ export default class CommentController {
         return;
       }
       res.status(201).json({ ok: true, id: commentId, reply: { usuario: auth.user, comentario: texto, fecha } });
-    } catch (e: any) {
-      const msg = e?.message || 'Error agregando respuesta';
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Error agregando respuesta';
       const code = /inválid|no encontrado|vacía/i.test(msg) ? 400 : 500;
       res.status(code).json({ message: 'No se pudo agregar respuesta', error: msg });
     }

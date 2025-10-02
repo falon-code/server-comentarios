@@ -1,4 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
+
+interface AuthenticatedRequest extends Request {
+  auth?: {
+    user: string;
+    role: 'player' | 'admin';
+  };
+}
 
 /*
   Auth mínimo por headers para desarrollo.
@@ -12,19 +19,19 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   const hdrRole = req.header('x-auth-role');
   const bodyUser = (req.body?.usuario ?? req.body?.user) as string | undefined;
   const bodyRole = (req.body?.role ?? req.body?.rol) as string | undefined;
-  const qq: any = req.query || {};
+  const qq: Record<string, unknown> = req.query ?? {};
   const qUser = (qq['usuario'] ?? qq['user']) as string | undefined;
   const qRole = (qq['role'] ?? qq['rol']) as string | undefined;
 
-  const user = (hdrUser || bodyUser || qUser || '').toString().trim();
-  const role = (hdrRole || bodyRole || qRole || '').toString().trim().toLowerCase();
+  const user = (hdrUser ?? bodyUser ?? qUser ?? '').toString().trim();
+  const role = (hdrRole ?? bodyRole ?? qRole ?? '').toString().trim().toLowerCase();
   if (!user) {
     res.status(401).json({ message: 'No autenticado: falta usuario' });
     return;
   }
   // Normalize role
   const r: 'admin' | 'player' = role === 'administrator' || role === 'admin' ? 'admin' : 'player';
-  (req as any).auth = { user, role: r };
+  (req as AuthenticatedRequest).auth = { user, role: r };
   next();
 }
 
@@ -37,6 +44,6 @@ export function loginHandler(req: Request, res: Response, next: NextFunction): v
     return;
   }
   // Mantener compatibilidad mínima: if provided, accept as-is and infer role 'player'
-  (req as any).auth = { user: headerUser, role: 'player' };
+  (req as AuthenticatedRequest).auth = { user: headerUser, role: 'player' };
   next();
 }

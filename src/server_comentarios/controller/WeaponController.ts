@@ -24,8 +24,9 @@ export default class WeaponController {
 
       const weapons = await this.weaponModel.getAll(filters);
       res.status(200).json(weapons);
-    } catch (e: any) {
-      res.status(500).json({ message: 'Error al obtener weapons', error: e.message });
+    } catch (e: unknown) {
+      const error = e as Error;
+      res.status(500).json({ message: 'Error al obtener weapons', error: error.message });
     }
   };
 
@@ -55,8 +56,9 @@ export default class WeaponController {
       }
 
       res.status(200).json(weapon);
-    } catch (e: any) {
-      res.status(500).json({ message: 'Error al obtener weapon', error: e.message });
+    } catch (e: unknown) {
+      const error = e as Error;
+      res.status(500).json({ message: 'Error al obtener weapon', error: error.message });
     }
   };
 }

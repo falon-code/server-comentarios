@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection, Document } from 'mongodb';
+import { Collection, Db, Document, MongoClient } from 'mongodb';
 
 // Estas variables guardan estado de la conexión.
 let clientPromise: Promise<MongoClient> | null = null;
@@ -16,17 +16,17 @@ let commentsClientInstance: MongoClient | null = null;
 let loggedCommentsConnection = false;
 
 // Configuración base (con defaults).
-const uri = process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
-const dbName = process.env['MONGODB_DB'] || 'NexusBattlesIV';
-const collectionName = process.env['MONGODB_COLLECTION'] || 'comentarios';
+const uri = process.env['MONGODB_URI'] ?? 'mongodb://localhost:27017';
+const dbName = process.env['MONGODB_DB'] ?? 'NexusBattlesIV';
+const collectionName = process.env['MONGODB_COLLECTION'] ?? 'comentarios';
 // Permite definir una base específica para los comentarios
-const commentsDbName = process.env['MONGODB_DB_COMMENTS'] || dbName;
+const commentsDbName = process.env['MONGODB_DB_COMMENTS'] ?? dbName;
 let detectedCommentsDbName: string | null = null;
 let commentsDbResolved = false;
 
 // URI alterna para inventario (si no se define, reutiliza la principal)
-const inventoryUri = process.env['MONGODB_URI_INVENTORY'] || process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
-const commentsUri = process.env['MONGODB_URI_COMMENTS'] || process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
+const inventoryUri = process.env['MONGODB_URI_INVENTORY'] ?? process.env['MONGODB_URI'] ?? 'mongodb://localhost:27017';
+const commentsUri = process.env['MONGODB_URI_COMMENTS'] ?? process.env['MONGODB_URI'] ?? 'mongodb://localhost:27017';
 
 /**
  * - Si ya hay una instancia conectada la devuelve.
@@ -152,7 +152,7 @@ async function getCommentsDb(): Promise<Db> {
       commentsDbResolved = true;
     }
   }
-  return client.db(detectedCommentsDbName || commentsDbName);
+  return client.db(detectedCommentsDbName ?? commentsDbName);
 }
 
 export async function getCommentsCollection<T extends Document>(): Promise<Collection<T>> {
@@ -212,8 +212,9 @@ export async function pingMongo(): Promise<{ ok: boolean; error?: string }> {
     const db = await getDb();
     await db.command({ ping: 1 });
     return { ok: true };
-  } catch (e: any) {
-    return { ok: false, error: e?.message || 'unknown error' };
+  } catch (e: unknown) {
+    const error = e as Error;
+    return { ok: false, error: error?.message ?? 'unknown error' };
   }
 }
 

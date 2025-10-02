@@ -4,28 +4,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Server_1 = __importDefault(require("./express/Server"));
+const ArmorController_1 = __importDefault(require("./server_comentarios/controller/ArmorController"));
+const AuthController_1 = __importDefault(require("./server_comentarios/controller/AuthController"));
+const CommentController_1 = __importDefault(require("./server_comentarios/controller/CommentController"));
+const ItemController_1 = __importDefault(require("./server_comentarios/controller/ItemController"));
+const WeaponController_1 = __importDefault(require("./server_comentarios/controller/WeaponController"));
+const ArmorModel_1 = __importDefault(require("./server_comentarios/model/ArmorModel"));
+const CommentModel_1 = __importDefault(require("./server_comentarios/model/CommentModel"));
+const ItemModel_1 = __importDefault(require("./server_comentarios/model/ItemModel"));
+const WeaponModel_1 = __importDefault(require("./server_comentarios/model/WeaponModel"));
+const ArmorView_1 = __importDefault(require("./server_comentarios/view/ArmorView"));
+const AuthView_1 = __importDefault(require("./server_comentarios/view/AuthView"));
+const CommentView_1 = __importDefault(require("./server_comentarios/view/CommentView"));
+const ItemView_1 = __importDefault(require("./server_comentarios/view/ItemView"));
+const WeaponView_1 = __importDefault(require("./server_comentarios/view/WeaponView"));
 // Carga variables de entorno desde ./env/.env si existe (también funciona en Docker)
 try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('dotenv').config({ path: './env/.env' });
 }
 catch {
     // ignore if dotenv is not available; dev uses ts-node-dev --env-file
 }
-const ArmorModel_1 = __importDefault(require("./server_comentarios/model/ArmorModel"));
-const ArmorController_1 = __importDefault(require("./server_comentarios/controller/ArmorController"));
-const ArmorView_1 = __importDefault(require("./server_comentarios/view/ArmorView"));
-const ItemModel_1 = __importDefault(require("./server_comentarios/model/ItemModel"));
-const ItemController_1 = __importDefault(require("./server_comentarios/controller/ItemController"));
-const ItemView_1 = __importDefault(require("./server_comentarios/view/ItemView"));
-const WeaponModel_1 = __importDefault(require("./server_comentarios/model/WeaponModel"));
-const WeaponController_1 = __importDefault(require("./server_comentarios/controller/WeaponController"));
-const WeaponView_1 = __importDefault(require("./server_comentarios/view/WeaponView"));
-const CommentModel_1 = __importDefault(require("./server_comentarios/model/CommentModel"));
-const CommentController_1 = __importDefault(require("./server_comentarios/controller/CommentController"));
-const CommentView_1 = __importDefault(require("./server_comentarios/view/CommentView"));
-const AuthController_1 = __importDefault(require("./server_comentarios/controller/AuthController"));
-const AuthView_1 = __importDefault(require("./server_comentarios/view/AuthView"));
 // Proyecto simplificado: solo lectura de armors, items, weapons
 // Módulo de lectura de Armors (Inventario)
 const armorModel = new ArmorModel_1.default();

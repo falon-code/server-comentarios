@@ -127,7 +127,16 @@ export default [
 
   // Ignorar archivos específicos
   {
-    ignores: ['build/**', 'node_modules/**', 'env/**', 'database/**', 'docs/**', '*.config.js'],
+    ignores: [
+      'build/**',
+      'node_modules/**',
+      'env/**',
+      'database/**',
+      'docs/**',
+      '*.config.js',
+      'reports/**',
+      'scripts/**',
+    ],
   },
 
   // Aplicar configuración de Prettier (debe ser la última)

@@ -1,5 +1,5 @@
-import ArmorInterface from '../types/ArmorInterface';
 import { getGenericInventoryCollection, getInventoryMongoClient } from '../db/mongo';
+import ArmorInterface from '../types/ArmorInterface';
 
 export default class ArmorModel {
   private dbName: string;
@@ -7,8 +7,8 @@ export default class ArmorModel {
   private resolved = false;
 
   constructor() {
-    this.dbName = process.env['INVENTORY_DB_NAME'] || 'Inventario'; // valor inicial (puede cambiar tras autodetección)
-    this.collectionName = process.env['INVENTORY_ARMORS_COLLECTION'] || 'armors';
+    this.dbName = process.env['INVENTORY_DB_NAME'] ?? 'Inventario'; // valor inicial (puede cambiar tras autodetección)
+    this.collectionName = process.env['INVENTORY_ARMORS_COLLECTION'] ?? 'armors';
   }
 
   /*
@@ -57,10 +57,11 @@ export default class ArmorModel {
   }): Promise<ArmorInterface[]> => {
     await this.ensureDbResolved();
     const col = await getGenericInventoryCollection<ArmorInterface>(this.dbName, this.collectionName);
-    const query: any = {};
-    if (filters && typeof filters.heroType === 'string') query.heroType = filters.heroType;
-    if (filters && typeof filters.armorType === 'string') query.armorType = filters.armorType;
-    if (typeof filters?.status !== 'undefined') query.status = filters.status === 'true' || filters.status === true;
+    const query: Record<string, unknown> = {};
+    if (filters && typeof filters['heroType'] === 'string') query['heroType'] = filters['heroType'];
+    if (filters && typeof filters['armorType'] === 'string') query['armorType'] = filters['armorType'];
+    if (typeof filters?.['status'] !== 'undefined')
+      query['status'] = filters['status'] === 'true' || filters['status'] === true;
     const docs = await col.find(query).sort({ id: 1 }).toArray();
     console.log(`[ArmorModel] getAll query=${JSON.stringify(query)} returned=${docs.length}`);
     return docs;

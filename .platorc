@@ -1,0 +1,19 @@
+{
+  "title": "Server Comentarios - Análisis de Complejidad",
+  "recurse": true,
+  "jshint": {
+    "options": {
+      "strict": false,
+      "undef": false,
+      "unused": false,
+      "node": true,
+      "esversion": 6
+    }
+  },
+  "complexity": {
+    "trycatch": true,
+    "newmi": true,
+    "forin": false,
+    "logicalor": true
+  }
+}

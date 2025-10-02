@@ -14,11 +14,11 @@ function requireAuth(req, res, next) {
     const hdrRole = req.header('x-auth-role');
     const bodyUser = (req.body?.usuario ?? req.body?.user);
     const bodyRole = (req.body?.role ?? req.body?.rol);
-    const qq = req.query || {};
+    const qq = req.query ?? {};
     const qUser = (qq['usuario'] ?? qq['user']);
     const qRole = (qq['role'] ?? qq['rol']);
-    const user = (hdrUser || bodyUser || qUser || '').toString().trim();
-    const role = (hdrRole || bodyRole || qRole || '').toString().trim().toLowerCase();
+    const user = (hdrUser ?? bodyUser ?? qUser ?? '').toString().trim();
+    const role = (hdrRole ?? bodyRole ?? qRole ?? '').toString().trim().toLowerCase();
     if (!user) {
         res.status(401).json({ message: 'No autenticado: falta usuario' });
         return;

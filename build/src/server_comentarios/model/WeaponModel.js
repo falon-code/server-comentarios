@@ -7,8 +7,8 @@ class WeaponModel {
     resolved = false;
     constructor() {
         // Valor inicial; si no se fuerza por env se puede reemplazar tras autodetección.
-        this.dbName = process.env['INVENTORY_DB_NAME'] || 'Inventario';
-        this.collectionName = process.env['INVENTORY_WEAPONS_COLLECTION'] || 'weapons';
+        this.dbName = process.env['INVENTORY_DB_NAME'] ?? 'Inventario';
+        this.collectionName = process.env['INVENTORY_WEAPONS_COLLECTION'] ?? 'weapons';
     }
     /*
      * Este método se ejecuta una única vez para asegurar que la base de datos utilizada por el modelo de armaduras esté correctamente resuelta.
@@ -58,10 +58,10 @@ class WeaponModel {
         await this.ensureDbResolved();
         const col = await (0, mongo_1.getGenericInventoryCollection)(this.dbName, this.collectionName);
         const query = {};
-        if (filters && typeof filters.heroType === 'string')
-            query.heroType = filters.heroType;
-        if (typeof filters?.status !== 'undefined')
-            query.status = filters.status === 'true' || filters.status === true;
+        if (filters && typeof filters['heroType'] === 'string')
+            query['heroType'] = filters['heroType'];
+        if (typeof filters?.['status'] !== 'undefined')
+            query['status'] = filters['status'] === 'true' || filters['status'] === true;
         if (filters && typeof filters.effectType === 'string')
             query['effects.effectType'] = filters.effectType;
         const docs = await col.find(query).sort({ id: 1 }).toArray();

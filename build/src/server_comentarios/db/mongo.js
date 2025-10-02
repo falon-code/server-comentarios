@@ -24,16 +24,16 @@ let commentsClientPromise = null;
 let commentsClientInstance = null;
 let loggedCommentsConnection = false;
 // Configuración base (con defaults).
-const uri = process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
-const dbName = process.env['MONGODB_DB'] || 'NexusBattlesIV';
-const collectionName = process.env['MONGODB_COLLECTION'] || 'comentarios';
+const uri = process.env['MONGODB_URI'] ?? 'mongodb://localhost:27017';
+const dbName = process.env['MONGODB_DB'] ?? 'NexusBattlesIV';
+const collectionName = process.env['MONGODB_COLLECTION'] ?? 'comentarios';
 // Permite definir una base específica para los comentarios
-const commentsDbName = process.env['MONGODB_DB_COMMENTS'] || dbName;
+const commentsDbName = process.env['MONGODB_DB_COMMENTS'] ?? dbName;
 let detectedCommentsDbName = null;
 let commentsDbResolved = false;
 // URI alterna para inventario (si no se define, reutiliza la principal)
-const inventoryUri = process.env['MONGODB_URI_INVENTORY'] || process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
-const commentsUri = process.env['MONGODB_URI_COMMENTS'] || process.env['MONGODB_URI'] || 'mongodb://localhost:27017';
+const inventoryUri = process.env['MONGODB_URI_INVENTORY'] ?? process.env['MONGODB_URI'] ?? 'mongodb://localhost:27017';
+const commentsUri = process.env['MONGODB_URI_COMMENTS'] ?? process.env['MONGODB_URI'] ?? 'mongodb://localhost:27017';
 /**
  * - Si ya hay una instancia conectada la devuelve.
  * - Si no existe, crea una sola promesa de conexión para evitar carreras.
@@ -160,7 +160,7 @@ async function getCommentsDb() {
             commentsDbResolved = true;
         }
     }
-    return client.db(detectedCommentsDbName || commentsDbName);
+    return client.db(detectedCommentsDbName ?? commentsDbName);
 }
 async function getCommentsCollection() {
     const db = await getCommentsDb();
@@ -211,7 +211,8 @@ async function pingMongo() {
         return { ok: true };
     }
     catch (e) {
-        return { ok: false, error: e?.message || 'unknown error' };
+        const error = e;
+        return { ok: false, error: error?.message ?? 'unknown error' };
     }
 }
 /**

@@ -15,7 +15,7 @@ export interface TokenPayload {
 export function signToken(
   payload: Omit<TokenPayload, 'exp'>,
   ttlSeconds = 7200,
-  secret = process.env['AUTH_SECRET'] || 'dev-secret'
+  secret = process.env['AUTH_SECRET'] ?? 'dev-secret'
 ): string {
   const now = Math.floor(Date.now() / 1000);
   const full: TokenPayload = { ...payload, exp: now + ttlSeconds } as TokenPayload;
@@ -32,7 +32,7 @@ export function signToken(
   return `${data}.${sig}`;
 }
 
-export function verifyToken(token: string, secret = process.env['AUTH_SECRET'] || 'dev-secret'): TokenPayload | null {
+export function verifyToken(token: string, secret = process.env['AUTH_SECRET'] ?? 'dev-secret'): TokenPayload | null {
   const parts = token.split('.');
   if (parts.length !== 3) return null;
   const [h64, p64, sig] = parts as [string, string, string];

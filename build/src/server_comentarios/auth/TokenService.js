@@ -10,7 +10,7 @@ function base64url(input) {
     return Buffer.from(input).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
 const header = { alg: 'HS256', typ: 'JWT' };
-function signToken(payload, ttlSeconds = 7200, secret = process.env['AUTH_SECRET'] || 'dev-secret') {
+function signToken(payload, ttlSeconds = 7200, secret = process.env['AUTH_SECRET'] ?? 'dev-secret') {
     const now = Math.floor(Date.now() / 1000);
     const full = { ...payload, exp: now + ttlSeconds };
     const h64 = base64url(JSON.stringify(header));
@@ -25,7 +25,7 @@ function signToken(payload, ttlSeconds = 7200, secret = process.env['AUTH_SECRET
         .replace(/\//g, '_');
     return `${data}.${sig}`;
 }
-function verifyToken(token, secret = process.env['AUTH_SECRET'] || 'dev-secret') {
+function verifyToken(token, secret = process.env['AUTH_SECRET'] ?? 'dev-secret') {
     const parts = token.split('.');
     if (parts.length !== 3)
         return null;

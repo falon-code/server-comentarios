@@ -29,7 +29,8 @@ class WeaponController {
             res.status(200).json(weapons);
         }
         catch (e) {
-            res.status(500).json({ message: 'Error al obtener weapons', error: e.message });
+            const error = e;
+            res.status(500).json({ message: 'Error al obtener weapons', error: error.message });
         }
     };
     /*
@@ -58,7 +59,8 @@ class WeaponController {
             res.status(200).json(weapon);
         }
         catch (e) {
-            res.status(500).json({ message: 'Error al obtener weapon', error: e.message });
+            const error = e;
+            res.status(500).json({ message: 'Error al obtener weapon', error: error.message });
         }
     };
 }

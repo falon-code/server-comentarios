@@ -27,8 +27,9 @@ export default class ItemController {
 
       const items = await this.itemModel.getAll(filters);
       res.status(200).json(items);
-    } catch (e: any) {
-      res.status(500).json({ message: 'Error al obtener items', error: e.message });
+    } catch (e: unknown) {
+      const error = e as Error;
+      res.status(500).json({ message: 'Error al obtener items', error: error.message });
     }
   };
 
@@ -58,8 +59,9 @@ export default class ItemController {
       }
 
       res.status(200).json(item);
-    } catch (e: any) {
-      res.status(500).json({ message: 'Error al obtener item', error: e.message });
+    } catch (e: unknown) {
+      const error = e as Error;
+      res.status(500).json({ message: 'Error al obtener item', error: error.message });
     }
   };
 }
