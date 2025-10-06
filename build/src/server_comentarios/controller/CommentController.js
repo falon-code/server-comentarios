@@ -5,6 +5,55 @@ class CommentController {
     constructor(model) {
         this.model = model;
     }
+    // Valida y normaliza el campo "imagen".
+    // Acepta:
+    //  - DataURL: data:image/(png|jpg|jpeg|webp);base64,<...>
+    //  - URL http/https que termine en .png/.jpg/.jpeg/.webp (opcional query)
+    // Reglas:
+    //  - Longitud máxima configurable por env COMMENT_IMAGE_MAX_LENGTH (default 300000 chars)
+    //  - Formatos permitidos: png, jpg, jpeg, webp
+    //  - No convierte ni recorta base64; sólo valida patrón y tamaño
+    processIncomingImage = (raw) => {
+        if (typeof raw === 'undefined')
+            return undefined; // no enviado
+        if (raw === null)
+            return null; // explícitamente null => se conservará como null
+        const str = String(raw).trim();
+        if (!str)
+            return undefined; // cadena vacía => ignorar
+        const maxLen = Number(process.env['COMMENT_IMAGE_MAX_LENGTH'] || 300000);
+        if (str.length > maxLen)
+            throw new Error(`imagen excede longitud máxima (${maxLen})`);
+        // Data URL pattern
+        const dataUrlRegex = /^data:(image\/(png|jpe?g|webp));base64,([A-Za-z0-9+/=]+)$/i;
+        if (dataUrlRegex.test(str))
+            return str; // formato válido
+        // HTTP/HTTPS URL pattern
+        try {
+            if (/^https?:\/\//i.test(str)) {
+                const url = new URL(str);
+                // Validar extensión (path antes de query)
+                const pathname = url.pathname.toLowerCase();
+                if (/(\.png|\.jpe?g|\.webp)$/.test(pathname)) {
+                    if (str.length > 2048)
+                        throw new Error('imagen URL demasiado larga (>2048)');
+                    return str;
+                }
+                throw new Error('imagen URL con extensión no permitida');
+            }
+        }
+        catch (e) {
+            // Si es un error de URL inválida, continuar para lanzar error genérico abajo
+            const msg = e.message;
+            if (/URL/.test(msg)) {
+                // caer a error general
+            }
+            else {
+                throw e; // errores de validación ya formateados arriba
+            }
+        }
+        throw new Error('imagen inválida: use DataURL base64 (png/jpg/webp) o URL http(s) con extensión válida');
+    };
     // POST /api/comments  (auth requerido)
     create = async (req, res) => {
         try {
@@ -13,6 +62,19 @@ class CommentController {
             const auth = req.auth;
             if (auth?.user)
                 body.usuario = auth.user;
+            // Validar imagen si viene
+            if (Object.prototype.hasOwnProperty.call(body, 'imagen')) {
+                try {
+                    const validated = this.processIncomingImage(body.imagen);
+                    if (typeof validated !== 'undefined')
+                        body.imagen = validated; // puede ser null o string
+                }
+                catch (err) {
+                    const msg = err.message;
+                    res.status(400).json({ message: 'Imagen inválida', error: msg });
+                    return;
+                }
+            }
             const doc = await this.model.create(body);
             res.status(201).json(doc);
         }
@@ -52,6 +114,17 @@ class CommentController {
             const payload = { usuario, comentario };
             if (typeof valoracion !== 'undefined' && !Number.isNaN(valoracion))
                 payload.valoracion = valoracion;
+            if (Object.prototype.hasOwnProperty.call(req.body || {}, 'imagen')) {
+                try {
+                    const validated = this.processIncomingImage(req.body.imagen);
+                    if (typeof validated !== 'undefined')
+                        payload.imagen = validated; // puede quedar null o string
+                }
+                catch (err) {
+                    res.status(400).json({ message: 'Imagen inválida', error: err.message });
+                    return;
+                }
+            }
             payload.referencia = { tipo: tipo, id_objeto: oid };
             const doc = await this.model.create(payload);
             res.status(201).json(doc);

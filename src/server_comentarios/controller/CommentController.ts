@@ -4,6 +4,51 @@ import CommentModel from '../model/CommentModel';
 export default class CommentController {
   constructor(private readonly model: CommentModel) {}
 
+  // Valida y normaliza el campo "imagen".
+  // Acepta:
+  //  - DataURL: data:image/(png|jpg|jpeg|webp);base64,<...>
+  //  - URL http/https que termine en .png/.jpg/.jpeg/.webp (opcional query)
+  // Reglas:
+  //  - Longitud máxima configurable por env COMMENT_IMAGE_MAX_LENGTH (default 300000 chars)
+  //  - Formatos permitidos: png, jpg, jpeg, webp
+  //  - No convierte ni recorta base64; sólo valida patrón y tamaño
+  private readonly processIncomingImage = (raw: unknown): string | null | undefined => {
+    if (typeof raw === 'undefined') return undefined; // no enviado
+    if (raw === null) return null; // explícitamente null => se conservará como null
+    const str = String(raw).trim();
+    if (!str) return undefined; // cadena vacía => ignorar
+    const maxLen = Number(process.env['COMMENT_IMAGE_MAX_LENGTH'] || 300000);
+    if (str.length > maxLen) throw new Error(`imagen excede longitud máxima (${maxLen})`);
+
+    // Data URL pattern
+    const dataUrlRegex = /^data:(image\/(png|jpe?g|webp));base64,([A-Za-z0-9+/=]+)$/i;
+    if (dataUrlRegex.test(str)) return str; // formato válido
+
+    // HTTP/HTTPS URL pattern
+    try {
+      if (/^https?:\/\//i.test(str)) {
+        const url = new URL(str);
+        // Validar extensión (path antes de query)
+        const pathname = url.pathname.toLowerCase();
+        if (/(\.png|\.jpe?g|\.webp)$/.test(pathname)) {
+          if (str.length > 2048) throw new Error('imagen URL demasiado larga (>2048)');
+          return str;
+        }
+        throw new Error('imagen URL con extensión no permitida');
+      }
+    } catch (e) {
+      // Si es un error de URL inválida, continuar para lanzar error genérico abajo
+      const msg = (e as Error).message;
+      if (/URL/.test(msg)) {
+        // caer a error general
+      } else {
+        throw e; // errores de validación ya formateados arriba
+      }
+    }
+
+    throw new Error('imagen inválida: use DataURL base64 (png/jpg/webp) o URL http(s) con extensión válida');
+  };
+
   // POST /api/comments  (auth requerido)
   readonly create = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -11,6 +56,17 @@ export default class CommentController {
       // Sobrescribir usuario desde auth si viene
       const auth = (req as { auth?: { user: string } }).auth;
       if (auth?.user) body.usuario = auth.user;
+      // Validar imagen si viene
+      if (Object.prototype.hasOwnProperty.call(body, 'imagen')) {
+        try {
+          const validated = this.processIncomingImage(body.imagen);
+            if (typeof validated !== 'undefined') body.imagen = validated; // puede ser null o string
+        } catch (err) {
+          const msg = (err as Error).message;
+          res.status(400).json({ message: 'Imagen inválida', error: msg });
+          return;
+        }
+      }
       const doc = await this.model.create(body);
       res.status(201).json(doc);
     } catch (e: unknown) {
@@ -49,6 +105,15 @@ export default class CommentController {
       const valoracion = typeof valoracionRaw === 'undefined' ? undefined : Number(valoracionRaw);
       const payload: any = { usuario, comentario };
       if (typeof valoracion !== 'undefined' && !Number.isNaN(valoracion)) payload.valoracion = valoracion;
+      if (Object.prototype.hasOwnProperty.call(req.body || {}, 'imagen')) {
+        try {
+          const validated = this.processIncomingImage((req.body as any).imagen);
+          if (typeof validated !== 'undefined') payload.imagen = validated; // puede quedar null o string
+        } catch (err) {
+          res.status(400).json({ message: 'Imagen inválida', error: (err as Error).message });
+          return;
+        }
+      }
       payload.referencia = { tipo: tipo as any, id_objeto: oid };
       const doc = await this.model.create(payload);
       res.status(201).json(doc);

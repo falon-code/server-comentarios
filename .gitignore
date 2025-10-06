@@ -44,8 +44,10 @@ jspm_packages/
 # Build output
 build/
 
-# Environment files
+# Environment directory (holds environment-specific config files not for version control)
 env/
+env/.env
+env/*.env
 
 # Reports directory (PLATO and other analysis tools)
 reports/
@@ -71,3 +73,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Ensure root .env files are ignored
+.env
+.env.*

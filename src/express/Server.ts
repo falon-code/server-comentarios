@@ -1,11 +1,12 @@
+import cors from 'cors';
 import express, { Application } from 'express';
+import swaggerUi from 'swagger-ui-express';
 import ArmorView from '../server_comentarios/view/ArmorView';
+import AuthView from '../server_comentarios/view/AuthView';
+import CommentView from '../server_comentarios/view/CommentView';
+import EpicaView from '../server_comentarios/view/EpicaView';
 import ItemView from '../server_comentarios/view/ItemView';
 import WeaponView from '../server_comentarios/view/WeaponView';
-import cors from 'cors';
-import CommentView from '../server_comentarios/view/CommentView';
-import AuthView from '../server_comentarios/view/AuthView';
-import swaggerUi from 'swagger-ui-express';
 import swaggerSpecs from '../swagger/swaggerConfig';
 
 export default class Server {
@@ -15,6 +16,7 @@ export default class Server {
     private readonly armorView: ArmorView,
     private readonly itemView: ItemView,
     private readonly weaponView: WeaponView,
+    private readonly epicaView: EpicaView,
     private readonly commentView: CommentView,
     private readonly authView: AuthView
   ) {
@@ -66,7 +68,8 @@ export default class Server {
 
     this.app.use('/api', this.armorView.router);
     this.app.use('/api', this.itemView.router);
-    this.app.use('/api', this.weaponView.router);
+  this.app.use('/api', this.weaponView.router);
+  this.app.use('/api', this.epicaView.router);
     this.app.use('/api', this.commentView.router);
     this.app.use('/api', this.authView.router);
   };

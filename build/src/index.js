@@ -7,15 +7,18 @@ const Server_1 = __importDefault(require("./express/Server"));
 const ArmorController_1 = __importDefault(require("./server_comentarios/controller/ArmorController"));
 const AuthController_1 = __importDefault(require("./server_comentarios/controller/AuthController"));
 const CommentController_1 = __importDefault(require("./server_comentarios/controller/CommentController"));
+const EpicaController_1 = __importDefault(require("./server_comentarios/controller/EpicaController"));
 const ItemController_1 = __importDefault(require("./server_comentarios/controller/ItemController"));
 const WeaponController_1 = __importDefault(require("./server_comentarios/controller/WeaponController"));
 const ArmorModel_1 = __importDefault(require("./server_comentarios/model/ArmorModel"));
 const CommentModel_1 = __importDefault(require("./server_comentarios/model/CommentModel"));
+const EpicaModel_1 = __importDefault(require("./server_comentarios/model/EpicaModel"));
 const ItemModel_1 = __importDefault(require("./server_comentarios/model/ItemModel"));
 const WeaponModel_1 = __importDefault(require("./server_comentarios/model/WeaponModel"));
 const ArmorView_1 = __importDefault(require("./server_comentarios/view/ArmorView"));
 const AuthView_1 = __importDefault(require("./server_comentarios/view/AuthView"));
 const CommentView_1 = __importDefault(require("./server_comentarios/view/CommentView"));
+const EpicaView_1 = __importDefault(require("./server_comentarios/view/EpicaView"));
 const ItemView_1 = __importDefault(require("./server_comentarios/view/ItemView"));
 const WeaponView_1 = __importDefault(require("./server_comentarios/view/WeaponView"));
 // Carga variables de entorno desde ./env/.env si existe (también funciona en Docker)
@@ -39,6 +42,10 @@ const itemView = new ItemView_1.default(itemController);
 const weaponModel = new WeaponModel_1.default();
 const weaponController = new WeaponController_1.default(weaponModel);
 const weaponView = new WeaponView_1.default(weaponController);
+// Epicas
+const epicaModel = new EpicaModel_1.default();
+const epicaController = new EpicaController_1.default(epicaModel);
+const epicaView = new EpicaView_1.default(epicaController);
 // Comments
 const commentModel = new CommentModel_1.default();
 const commentController = new CommentController_1.default(commentModel);
@@ -46,6 +53,6 @@ const commentView = new CommentView_1.default(commentController);
 const authController = new AuthController_1.default();
 const authView = new AuthView_1.default(authController);
 // Servidor
-const server = new Server_1.default(armorView, itemView, weaponView, commentView, authView);
+const server = new Server_1.default(armorView, itemView, weaponView, epicaView, commentView, authView);
 // Iniciar el servidor
 server.start();

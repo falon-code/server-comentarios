@@ -3,21 +3,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const express_1 = __importDefault(require("express"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swaggerConfig_1 = __importDefault(require("../swagger/swaggerConfig"));
 class Server {
     armorView;
     itemView;
     weaponView;
+    epicaView;
     commentView;
     authView;
     app;
-    constructor(armorView, itemView, weaponView, commentView, authView) {
+    constructor(armorView, itemView, weaponView, epicaView, commentView, authView) {
         this.armorView = armorView;
         this.itemView = itemView;
         this.weaponView = weaponView;
+        this.epicaView = epicaView;
         this.commentView = commentView;
         this.authView = authView;
         this.app = (0, express_1.default)();
@@ -58,6 +60,7 @@ class Server {
         this.app.use('/api', this.armorView.router);
         this.app.use('/api', this.itemView.router);
         this.app.use('/api', this.weaponView.router);
+        this.app.use('/api', this.epicaView.router);
         this.app.use('/api', this.commentView.router);
         this.app.use('/api', this.authView.router);
     };

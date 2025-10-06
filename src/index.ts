@@ -2,15 +2,18 @@ import Server from './express/Server';
 import ArmorController from './server_comentarios/controller/ArmorController';
 import AuthController from './server_comentarios/controller/AuthController';
 import CommentController from './server_comentarios/controller/CommentController';
+import EpicaController from './server_comentarios/controller/EpicaController';
 import ItemController from './server_comentarios/controller/ItemController';
 import WeaponController from './server_comentarios/controller/WeaponController';
 import ArmorModel from './server_comentarios/model/ArmorModel';
 import CommentModel from './server_comentarios/model/CommentModel';
+import EpicaModel from './server_comentarios/model/EpicaModel';
 import ItemModel from './server_comentarios/model/ItemModel';
 import WeaponModel from './server_comentarios/model/WeaponModel';
 import ArmorView from './server_comentarios/view/ArmorView';
 import AuthView from './server_comentarios/view/AuthView';
 import CommentView from './server_comentarios/view/CommentView';
+import EpicaView from './server_comentarios/view/EpicaView';
 import ItemView from './server_comentarios/view/ItemView';
 import WeaponView from './server_comentarios/view/WeaponView';
 // Carga variables de entorno desde ./env/.env si existe (también funciona en Docker)
@@ -37,6 +40,11 @@ const weaponModel = new WeaponModel();
 const weaponController = new WeaponController(weaponModel);
 const weaponView = new WeaponView(weaponController);
 
+// Epicas
+const epicaModel = new EpicaModel();
+const epicaController = new EpicaController(epicaModel);
+const epicaView = new EpicaView(epicaController);
+
 // Comments
 const commentModel = new CommentModel();
 const commentController = new CommentController(commentModel);
@@ -45,7 +53,7 @@ const authController = new AuthController();
 const authView = new AuthView(authController);
 
 // Servidor
-const server = new Server(armorView, itemView, weaponView, commentView, authView);
+const server = new Server(armorView, itemView, weaponView, epicaView, commentView, authView);
 
 // Iniciar el servidor
 server.start();
