@@ -5,73 +5,60 @@ class CommentController {
     constructor(model) {
         this.model = model;
     }
-    // Valida y normaliza el campo "imagen".
-    // Acepta:
-    //  - DataURL: data:image/(png|jpg|jpeg|webp);base64,<...>
-    //  - URL http/https que termine en .png/.jpg/.jpeg/.webp (opcional query)
-    // Reglas:
-    //  - Longitud máxima configurable por env COMMENT_IMAGE_MAX_LENGTH (default 300000 chars)
-    //  - Formatos permitidos: png, jpg, jpeg, webp
-    //  - No convierte ni recorta base64; sólo valida patrón y tamaño
-    processIncomingImage = (raw) => {
-        if (typeof raw === 'undefined')
-            return undefined; // no enviado
+    // Helper interno para validar / normalizar imagen opcional
+    processIncomingImage(raw) {
+        if (raw === undefined)
+            return undefined;
         if (raw === null)
-            return null; // explícitamente null => se conservará como null
-        const str = String(raw).trim();
-        if (!str)
-            return undefined; // cadena vacía => ignorar
-        const maxLen = Number(process.env['COMMENT_IMAGE_MAX_LENGTH'] || 300000);
-        if (str.length > maxLen)
-            throw new Error(`imagen excede longitud máxima (${maxLen})`);
-        // Data URL pattern
-        const dataUrlRegex = /^data:(image\/(png|jpe?g|webp));base64,([A-Za-z0-9+/=]+)$/i;
-        if (dataUrlRegex.test(str))
-            return str; // formato válido
-        // HTTP/HTTPS URL pattern
-        try {
-            if (/^https?:\/\//i.test(str)) {
-                const url = new URL(str);
-                // Validar extensión (path antes de query)
-                const pathname = url.pathname.toLowerCase();
-                if (/(\.png|\.jpe?g|\.webp)$/.test(pathname)) {
-                    if (str.length > 2048)
-                        throw new Error('imagen URL demasiado larga (>2048)');
-                    return str;
-                }
-                throw new Error('imagen URL con extensión no permitida');
+            return null; // Permite null explícito
+        const img = String(raw ?? '').trim();
+        if (!img)
+            return undefined;
+        const maxLen = Number(process.env["COMMENT_IMAGE_MAX_LENGTH"] || 300000); // default ~300KB
+        if (img.length > maxLen)
+            throw new Error(`La imagen excede el tamaño máximo permitido (${maxLen} chars)`);
+        // Sólo permitir png, jpg/jpeg y webp (excluir gif)
+        const isDataUrl = /^data:image\/(png|jpe?g|webp);base64,/i.test(img);
+        const isHttp = /^https?:\/\//i.test(img);
+        if (!isDataUrl && !isHttp)
+            throw new Error('Formato de imagen no soportado. Use data:image/(png|jpg|jpeg|webp);base64 ó URL http(s)');
+        // Validación extra para URLs http(s): verificar extensión simple si no es data URL
+        if (isHttp) {
+            const src = img; // ya es string no undefined
+            if (!src)
+                throw new Error('URL de imagen vacía');
+            const cleaned = src.toLowerCase().replace(/[?#].*$/, '');
+            if (!/(\.png|\.jpe?g|\.webp)$/.test(cleaned)) {
+                throw new Error('Sólo se permiten URLs con extensión .png, .jpg, .jpeg o .webp');
             }
         }
-        catch (e) {
-            // Si es un error de URL inválida, continuar para lanzar error genérico abajo
-            const msg = e.message;
-            if (/URL/.test(msg)) {
-                // caer a error general
+        if (isDataUrl) {
+            const commaIdx = img.indexOf(',');
+            const b64 = img.substring(commaIdx + 1);
+            try {
+                Buffer.from(b64, 'base64');
             }
-            else {
-                throw e; // errores de validación ya formateados arriba
+            catch {
+                throw new Error('Base64 inválido en data URL');
             }
         }
-        throw new Error('imagen inválida: use DataURL base64 (png/jpg/webp) o URL http(s) con extensión válida');
-    };
+        return img;
+    }
     // POST /api/comments  (auth requerido)
     create = async (req, res) => {
         try {
-            const body = req.body ?? {};
+            const body = req.body || {};
             // Sobrescribir usuario desde auth si viene
             const auth = req.auth;
             if (auth?.user)
                 body.usuario = auth.user;
-            // Validar imagen si viene
+            // Validar/normalizar imagen (opcional)
             if (Object.prototype.hasOwnProperty.call(body, 'imagen')) {
                 try {
-                    const validated = this.processIncomingImage(body.imagen);
-                    if (typeof validated !== 'undefined')
-                        body.imagen = validated; // puede ser null o string
+                    body.imagen = this.processIncomingImage(body.imagen);
                 }
-                catch (err) {
-                    const msg = err.message;
-                    res.status(400).json({ message: 'Imagen inválida', error: msg });
+                catch (imgErr) {
+                    res.status(400).json({ message: 'Imagen inválida', error: imgErr?.message || String(imgErr) });
                     return;
                 }
             }
@@ -114,14 +101,13 @@ class CommentController {
             const payload = { usuario, comentario };
             if (typeof valoracion !== 'undefined' && !Number.isNaN(valoracion))
                 payload.valoracion = valoracion;
+            // Imagen opcional
             if (Object.prototype.hasOwnProperty.call(req.body || {}, 'imagen')) {
                 try {
-                    const validated = this.processIncomingImage(req.body.imagen);
-                    if (typeof validated !== 'undefined')
-                        payload.imagen = validated; // puede quedar null o string
+                    payload.imagen = this.processIncomingImage(req.body.imagen);
                 }
-                catch (err) {
-                    res.status(400).json({ message: 'Imagen inválida', error: err.message });
+                catch (imgErr) {
+                    res.status(400).json({ message: 'Imagen inválida', error: imgErr?.message || String(imgErr) });
                     return;
                 }
             }
@@ -235,7 +221,8 @@ class CommentController {
                 res.status(404).json({ message: 'Comentario no encontrado' });
                 return;
             }
-            const belongs = comment.referencia?.tipo === tipo && String(comment.referencia?.id_objeto) === String(oid);
+            const belongs = comment.referencia?.tipo === tipo
+                && String(comment.referencia?.id_objeto) === String(oid);
             if (!belongs) {
                 res.status(400).json({ message: 'El comentario no corresponde al recurso indicado' });
                 return;
@@ -250,7 +237,8 @@ class CommentController {
                 res.status(400).json({ message: 'No está permitido editar la imagen del comentario' });
                 return;
             }
-            if (typeof comentario === 'undefined' && typeof valoracion === 'undefined') {
+            if ((typeof comentario === 'undefined') &&
+                (typeof valoracion === 'undefined')) {
                 res.status(400).json({ message: 'Debe enviar al menos un campo: comentario o valoracion' });
                 return;
             }
@@ -310,7 +298,8 @@ class CommentController {
                 res.status(404).json({ message: 'Comentario no encontrado' });
                 return;
             }
-            const belongs = comment.referencia?.tipo === tipo && String(comment.referencia?.id_objeto) === String(oid);
+            const belongs = comment.referencia?.tipo === tipo
+                && String(comment.referencia?.id_objeto) === String(oid);
             if (!belongs) {
                 res.status(400).json({ message: 'El comentario no corresponde al recurso indicado' });
                 return;
@@ -368,7 +357,8 @@ class CommentController {
                 res.status(404).json({ message: 'Comentario no encontrado' });
                 return;
             }
-            const belongs = comment.referencia?.tipo === tipo && String(comment.referencia?.id_objeto) === String(oid);
+            const belongs = comment.referencia?.tipo === tipo
+                && String(comment.referencia?.id_objeto) === String(oid);
             if (!belongs) {
                 res.status(400).json({ message: 'El comentario no corresponde al recurso indicado' });
                 return;

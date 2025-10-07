@@ -6,8 +6,15 @@ class ArmorModel {
     collectionName;
     resolved = false;
     constructor() {
-        this.dbName = process.env['INVENTORY_DB_NAME'] ?? 'Inventario'; // valor inicial (puede cambiar tras autodetección)
-        this.collectionName = process.env['INVENTORY_ARMORS_COLLECTION'] ?? 'armors';
+        const rawDb = (process.env['INVENTORY_DB_NAME'] || '').trim();
+        this.dbName = rawDb || 'Inventario'; // fallback si viene vacío
+        const rawCol = (process.env['INVENTORY_ARMORS_COLLECTION'] || '').trim();
+        this.collectionName = rawCol || 'armors';
+        if (!this.collectionName) {
+            console.warn('[ArmorModel] Nombre de colección vacío, usando fallback "armors"');
+            this.collectionName = 'armors';
+        }
+        console.log('[ArmorModel] init', { dbName: this.dbName, collection: this.collectionName });
     }
     /*
      * Este método se ejecuta una única vez para asegurar que la base de datos utilizada por el modelo de armaduras esté correctamente resuelta.
@@ -49,6 +56,8 @@ class ArmorModel {
     };
     getAll = async (filters) => {
         await this.ensureDbResolved();
+        if (!this.collectionName)
+            throw new Error('Nombre de colección (armors) no definido');
         const col = await (0, mongo_1.getGenericInventoryCollection)(this.dbName, this.collectionName);
         const query = {};
         if (filters && typeof filters['heroType'] === 'string')

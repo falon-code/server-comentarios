@@ -7,8 +7,15 @@ export default class ArmorModel {
   private resolved = false;
 
   constructor() {
-    this.dbName = process.env['INVENTORY_DB_NAME'] ?? 'Inventario'; // valor inicial (puede cambiar tras autodetección)
-    this.collectionName = process.env['INVENTORY_ARMORS_COLLECTION'] ?? 'armors';
+    const rawDb = (process.env['INVENTORY_DB_NAME'] || '').trim();
+    this.dbName = rawDb || 'Inventario'; // fallback si viene vacío
+    const rawCol = (process.env['INVENTORY_ARMORS_COLLECTION'] || '').trim();
+    this.collectionName = rawCol || 'armors';
+    if (!this.collectionName) {
+      console.warn('[ArmorModel] Nombre de colección vacío, usando fallback "armors"');
+      (this as any).collectionName = 'armors';
+    }
+    console.log('[ArmorModel] init', { dbName: this.dbName, collection: this.collectionName });
   }
 
   /*
@@ -56,7 +63,8 @@ export default class ArmorModel {
     status?: string | boolean;
   }): Promise<ArmorInterface[]> => {
     await this.ensureDbResolved();
-    const col = await getGenericInventoryCollection<ArmorInterface>(this.dbName, this.collectionName);
+  if (!this.collectionName) throw new Error('Nombre de colección (armors) no definido');
+  const col = await getGenericInventoryCollection<ArmorInterface>(this.dbName, this.collectionName);
     const query: Record<string, unknown> = {};
     if (filters && typeof filters['heroType'] === 'string') query['heroType'] = filters['heroType'];
     if (filters && typeof filters['armorType'] === 'string') query['armorType'] = filters['armorType'];

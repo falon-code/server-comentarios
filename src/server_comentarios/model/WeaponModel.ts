@@ -7,9 +7,15 @@ export default class WeaponModel {
   private resolved = false;
 
   constructor() {
-    // Valor inicial; si no se fuerza por env se puede reemplazar tras autodetección.
-    this.dbName = process.env['INVENTORY_DB_NAME'] ?? 'Inventario';
-    this.collectionName = process.env['INVENTORY_WEAPONS_COLLECTION'] ?? 'weapons';
+    const rawDb = (process.env['INVENTORY_DB_NAME'] || '').trim();
+    this.dbName = rawDb || 'Inventario';
+    const rawCol = (process.env['INVENTORY_WEAPONS_COLLECTION'] || '').trim();
+    this.collectionName = rawCol || 'weapons';
+    if (!this.collectionName) {
+      console.warn('[WeaponModel] Nombre de colección vacío, usando fallback "weapons"');
+      (this as any).collectionName = 'weapons';
+    }
+    console.log('[WeaponModel] init', { dbName: this.dbName, collection: this.collectionName });
   }
 
   /*
@@ -63,7 +69,8 @@ export default class WeaponModel {
     status?: string | boolean;
   }): Promise<WeaponInterface[]> => {
     await this.ensureDbResolved();
-    const col = await getGenericInventoryCollection<WeaponInterface>(this.dbName, this.collectionName);
+  if (!this.collectionName) throw new Error('Nombre de colección (weapons) no definido');
+  const col = await getGenericInventoryCollection<WeaponInterface>(this.dbName, this.collectionName);
     const query: Record<string, unknown> = {};
     if (filters && typeof filters['heroType'] === 'string') query['heroType'] = filters['heroType'];
     if (typeof filters?.['status'] !== 'undefined')

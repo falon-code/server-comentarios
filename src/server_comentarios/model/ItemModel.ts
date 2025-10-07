@@ -7,9 +7,15 @@ export default class ItemModel {
   private resolved = false;
 
   constructor() {
-    // Valor inicial (puede cambiar si autodetección encuentra otra DB con la colección).
-    this.dbName = process.env['INVENTORY_DB_NAME'] ?? 'Inventario';
-    this.collectionName = process.env['INVENTORY_ITEMS_COLLECTION'] ?? 'items';
+    const rawDb = (process.env['INVENTORY_DB_NAME'] || '').trim();
+    this.dbName = rawDb || 'Inventario';
+    const rawCol = (process.env['INVENTORY_ITEMS_COLLECTION'] || '').trim();
+    this.collectionName = rawCol || 'items';
+    if (!this.collectionName) {
+      console.warn('[ItemModel] Nombre de colección vacío, usando fallback "items"');
+      (this as any).collectionName = 'items';
+    }
+    console.log('[ItemModel] init', { dbName: this.dbName, collection: this.collectionName });
   }
 
   /*
@@ -58,7 +64,8 @@ export default class ItemModel {
     name?: string;
   }): Promise<ItemInterface[]> => {
     await this.ensureDbResolved();
-    const col = await getGenericInventoryCollection<ItemInterface>(this.dbName, this.collectionName);
+  if (!this.collectionName) throw new Error('Nombre de colección (items) no definido');
+  const col = await getGenericInventoryCollection<ItemInterface>(this.dbName, this.collectionName);
     const query: Record<string, unknown> = {};
     if (filters && typeof filters['heroType'] === 'string') query['heroType'] = filters['heroType'];
     if (typeof filters?.['status'] !== 'undefined')
